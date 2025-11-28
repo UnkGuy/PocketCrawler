@@ -1,15 +1,16 @@
 import 'dart:math';
 import '../pet.dart';
+import 'dice_roller.dart';
 
 /// Represents a scenario encounter in the dungeon
 class Scenario {
-  String id;
-  String title;
-  String description;
-  List<Choice> choices;
-  ScenarioRarity rarity;
+  final String id;
+  final String title;
+  final String description;
+  final List<Choice> choices;
+  final ScenarioRarity rarity;
 
-  Scenario({
+  const Scenario({
     required this.id,
     required this.title,
     required this.description,
@@ -17,54 +18,70 @@ class Scenario {
     this.rarity = ScenarioRarity.common,
   });
 
-  /// Selects a random scenario based on weighted rarity
+  /// Select a random scenario based on weighted rarity
   static Scenario selectRandomScenario(List<Scenario> scenarios) {
-    final random = Random();
-
-    // Determine rarity based on weighted roll
-    ScenarioRarity targetRarity;
-    int roll = random.nextInt(100);
-
-    if (roll < 70) {
-      targetRarity = ScenarioRarity.common;
-    } else if (roll < 90) {
-      targetRarity = ScenarioRarity.uncommon;
-    } else {
-      targetRarity = ScenarioRarity.rare;
+    if (scenarios.isEmpty) {
+      throw ArgumentError('Cannot select from empty scenario list');
     }
 
-    // Filter scenarios by the chosen rarity
-    final availableScenarios = scenarios.where((s) => s.rarity == targetRarity).toList();
+    // Roll for rarity using DiceRoller
+    String rarityRoll = DiceRoller.rollRarity();
+    ScenarioRarity targetRarity = _rarityFromString(rarityRoll);
 
-    // If no scenarios of that rarity exist, fall back to any random scenario
+    // Filter scenarios by rarity
+    final availableScenarios = scenarios
+        .where((s) => s.rarity == targetRarity)
+        .toList();
+
+    // Fallback to any random scenario if none match
     if (availableScenarios.isEmpty) {
-      return scenarios[random.nextInt(scenarios.length)];
+      availableScenarios.addAll(scenarios);
     }
 
-    return availableScenarios[random.nextInt(availableScenarios.length)];
+    return availableScenarios[Random().nextInt(availableScenarios.length)];
+  }
+
+  /// Convert string rarity to enum
+  static ScenarioRarity _rarityFromString(String rarity) {
+    switch (rarity.toLowerCase()) {
+      case 'uncommon':
+        return ScenarioRarity.uncommon;
+      case 'rare':
+        return ScenarioRarity.rare;
+      default:
+        return ScenarioRarity.common;
+    }
   }
 
   @override
   String toString() => '$title - $description';
 }
 
+// ==============================================================================
+// SCENARIO RARITY
+// ==============================================================================
+
 /// Rarity of scenarios for weighted random selection
 enum ScenarioRarity {
-  common,    // 70% chance
-  uncommon,  // 20% chance
-  rare,      // 10% chance
+  common, // 70% chance
+  uncommon, // 20% chance
+  rare, // 10% chance
 }
+
+// ==============================================================================
+// CHOICE
+// ==============================================================================
 
 /// Represents a choice the player can make in a scenario
 class Choice {
-  String text;
-  String statRequired; // e.g., 'strength', 'dexterity', etc.
-  int difficultyClass; // DC for the check (like in DND)
-  Outcome successOutcome;
-  Outcome failureOutcome;
-  CheckType checkType; // normal, advantage, disadvantage
+  final String text;
+  final String statRequired;
+  final int difficultyClass;
+  final Outcome successOutcome;
+  final Outcome failureOutcome;
+  final CheckType checkType;
 
-  Choice({
+  const Choice({
     required this.text,
     required this.statRequired,
     required this.difficultyClass,
@@ -73,28 +90,18 @@ class Choice {
     this.checkType = CheckType.normal,
   });
 
-  /// Calculate success chance (approximation for display)
-  double getSuccessChance(Pet pet) {
-    int totalBonus = pet.getStatModifier(statRequired);
-    int neededRoll = difficultyClass - totalBonus;
+  /// Calculate success chance for this choice
+  double getSuccessChance(Pet pet, {bool hasAdvantage = false, bool hasDisadvantage = false}) {
+    // Combine check type with pet's status effects
+    bool finalAdvantage = (checkType == CheckType.advantage || hasAdvantage) && !hasDisadvantage;
+    bool finalDisadvantage = (checkType == CheckType.disadvantage || hasDisadvantage) && !hasAdvantage;
 
-    // Clamp between 1 and 20 (a natural 1 is usually fail, 20 success, but for % calc we clamp)
-    neededRoll = neededRoll.clamp(1, 20);
-
-    // Calculate raw probability (rolling equal to or higher than needed)
-    double baseChance = (21 - neededRoll) / 20;
-
-    // Adjust for advantage/disadvantage
-    if (checkType == CheckType.advantage) {
-      // Chance of failure with advantage is (failure_chance * failure_chance)
-      double failChance = 1.0 - baseChance;
-      baseChance = 1.0 - (failChance * failChance);
-    } else if (checkType == CheckType.disadvantage) {
-      // Chance of success with disadvantage is (success_chance * success_chance)
-      baseChance = baseChance * baseChance;
-    }
-
-    return (baseChance * 100).clamp(0, 100);
+    return DiceRoller.calculateSuccessChance(
+      dc: difficultyClass,
+      modifier: pet.getStatModifier(statRequired),
+      advantage: finalAdvantage,
+      disadvantage: finalDisadvantage,
+    );
   }
 }
 
@@ -105,107 +112,135 @@ enum CheckType {
   disadvantage,
 }
 
+// ==============================================================================
+// OUTCOME
+// ==============================================================================
+
 /// Represents the outcome of a choice
 class Outcome {
-  String description;
-  List<OutcomeEffect> effects;
+  final String description;
+  final List<OutcomeEffect> effects;
 
-  Outcome({
+  const Outcome({
     required this.description,
     required this.effects,
   });
 
   /// Apply all effects to the pet and return a detailed result message
   String apply(Pet pet, GameStateCallback? callback) {
-    String resultMessage = description;
+    StringBuffer resultMessage = StringBuffer(description);
 
     for (var effect in effects) {
-      switch (effect.type) {
-        case OutcomeEffectType.statChange:
-          if (effect.statName != null && effect.amount != null) {
-            pet.modifyStat(effect.statName!, effect.amount!);
-            resultMessage += '\n${effect.statName!.toUpperCase()} ${effect.amount! > 0 ? '+' : ''}${effect.amount}';
-          }
-          break;
-
-        case OutcomeEffectType.healthChange:
-          if (effect.amount != null) {
-            if (effect.amount! < 0) {
-              pet.takeDamage(effect.amount!.abs());
-              resultMessage += '\nLost ${effect.amount!.abs()} HP';
-            } else {
-              pet.heal(effect.amount!);
-              resultMessage += '\nHealed ${effect.amount} HP';
-            }
-          }
-          break;
-
-        case OutcomeEffectType.statusEffect:
-          if (effect.statusEffect != null) {
-            pet.addStatusEffect(effect.statusEffect!);
-            resultMessage += '\nGained: ${effect.statusEffect!.name}';
-          }
-          break;
-
-        case OutcomeEffectType.giveItem:
-        // This will be handled by the game state manager callback
-          if (callback != null && effect.itemId != null) {
-            callback(effect);
-            resultMessage += '\nReceived: ${effect.itemId}';
-          }
-          break;
-
-        case OutcomeEffectType.skipFloors:
-          if (callback != null && effect.amount != null) {
-            callback(effect);
-            resultMessage += '\nSkipped ${effect.amount} floors!';
-          }
-          break;
-
-        case OutcomeEffectType.loseFloors:
-          if (callback != null && effect.amount != null) {
-            callback(effect);
-            resultMessage += '\nSent back ${effect.amount} floors!';
-          }
-          break;
-
-        case OutcomeEffectType.swapStats:
-          if (effect.statName != null && effect.secondStatName != null) {
-            pet.swapStats(effect.statName!, effect.secondStatName!);
-            resultMessage += '\nSwapped ${effect.statName!.toUpperCase()} and ${effect.secondStatName!.toUpperCase()}!';
-          }
-          break;
-
-        case OutcomeEffectType.maxHealthChange:
-        // Indirectly change max health by modifying constitution if needed,
-        // or direct max health modifier could be added to Pet class later.
-        // For now, we reuse the constitution modifier logic or simple message.
-          if (effect.amount != null) {
-            // Assuming direct constitution mod for simplicity as per Pet class logic
-            pet.modifyStat('constitution', effect.amount!);
-            resultMessage += '\nMax HP ${effect.amount! > 0 ? 'increased' : 'decreased'}!';
-          }
-          break;
+      String effectMessage = _applyEffect(effect, pet, callback);
+      if (effectMessage.isNotEmpty) {
+        resultMessage.write('\n$effectMessage');
       }
     }
 
-    return resultMessage;
+    return resultMessage.toString();
+  }
+
+  /// Apply a single effect and return its message
+  String _applyEffect(OutcomeEffect effect, Pet pet, GameStateCallback? callback) {
+    switch (effect.type) {
+      case OutcomeEffectType.statChange:
+        return _applyStatChange(effect, pet);
+
+      case OutcomeEffectType.healthChange:
+        return _applyHealthChange(effect, pet);
+
+      case OutcomeEffectType.statusEffect:
+        return _applyStatusEffect(effect, pet);
+
+      case OutcomeEffectType.giveItem:
+        return _applyGiveItem(effect, callback);
+
+      case OutcomeEffectType.skipFloors:
+        return _applySkipFloors(effect, callback);
+
+      case OutcomeEffectType.loseFloors:
+        return _applyLoseFloors(effect, callback);
+
+      case OutcomeEffectType.swapStats:
+        return _applySwapStats(effect, pet);
+
+      case OutcomeEffectType.maxHealthChange:
+        return _applyMaxHealthChange(effect, pet);
+
+      }
+  }
+
+  String _applyStatChange(OutcomeEffect effect, Pet pet) {
+    if (effect.statName == null || effect.amount == null) return '';
+    pet.modifyStat(effect.statName!, effect.amount!);
+    return '${effect.statName!.toUpperCase()} ${effect.amount! > 0 ? '+' : ''}${effect.amount}';
+  }
+
+  String _applyHealthChange(OutcomeEffect effect, Pet pet) {
+    if (effect.amount == null) return '';
+    if (effect.amount! < 0) {
+      pet.takeDamage(effect.amount!.abs());
+      return 'Lost ${effect.amount!.abs()} HP';
+    } else {
+      pet.heal(effect.amount!);
+      return 'Healed ${effect.amount} HP';
+    }
+  }
+
+  String _applyStatusEffect(OutcomeEffect effect, Pet pet) {
+    if (effect.statusEffect == null) return '';
+    pet.addStatusEffect(effect.statusEffect!);
+    return 'Gained: ${effect.statusEffect!.name}';
+  }
+
+  String _applyGiveItem(OutcomeEffect effect, GameStateCallback? callback) {
+    if (callback == null || effect.itemId == null) return '';
+    callback(effect);
+    return 'Received: ${effect.itemId}';
+  }
+
+  String _applySkipFloors(OutcomeEffect effect, GameStateCallback? callback) {
+    if (callback == null || effect.amount == null) return '';
+    callback(effect);
+    return 'Skipped ${effect.amount} floors!';
+  }
+
+  String _applyLoseFloors(OutcomeEffect effect, GameStateCallback? callback) {
+    if (callback == null || effect.amount == null) return '';
+    callback(effect);
+    return 'Sent back ${effect.amount} floors!';
+  }
+
+  String _applySwapStats(OutcomeEffect effect, Pet pet) {
+    if (effect.statName == null || effect.secondStatName == null) return '';
+    pet.swapStats(effect.statName!, effect.secondStatName!);
+    return 'Swapped ${effect.statName!.toUpperCase()} and ${effect.secondStatName!.toUpperCase()}!';
+  }
+
+  String _applyMaxHealthChange(OutcomeEffect effect, Pet pet) {
+    if (effect.amount == null) return '';
+    pet.modifyStat('constitution', effect.amount!);
+    return 'Max HP ${effect.amount! > 0 ? 'increased' : 'decreased'}!';
   }
 }
 
 /// Callback type for game state changes
 typedef GameStateCallback = void Function(OutcomeEffect effect);
 
+// ==============================================================================
+// OUTCOME EFFECT
+// ==============================================================================
+
 /// Individual effect within an outcome
 class OutcomeEffect {
-  OutcomeEffectType type;
-  String? statName;      // For stat changes
-  String? secondStatName; // For stat swaps
-  int? amount;           // For stat changes, health changes, floor skips
-  StatusEffect? statusEffect; // For status effects
-  String? itemId;        // For giving items
+  final OutcomeEffectType type;
+  final String? statName;
+  final String? secondStatName;
+  final int? amount;
+  final StatusEffect? statusEffect;
+  final String? itemId;
 
-  OutcomeEffect({
+  const OutcomeEffect({
     required this.type,
     this.statName,
     this.secondStatName,
@@ -214,74 +249,78 @@ class OutcomeEffect {
     this.itemId,
   });
 
-  // Factory constructors for common effects
-  factory OutcomeEffect.statChange(String statName, int amount) {
-    return OutcomeEffect(
-      type: OutcomeEffectType.statChange,
-      statName: statName,
-      amount: amount,
-    );
-  }
+  // ----------------------------------------------------------------------------
+  // FACTORY CONSTRUCTORS
+  // ----------------------------------------------------------------------------
 
-  factory OutcomeEffect.healthChange(int amount) {
-    return OutcomeEffect(
-      type: OutcomeEffectType.healthChange,
-      amount: amount,
-    );
-  }
+  const OutcomeEffect.statChange(String this.statName, int this.amount)
+      : type = OutcomeEffectType.statChange,
+        secondStatName = null,
+        statusEffect = null,
+        itemId = null;
 
-  factory OutcomeEffect.addStatus(StatusEffect effect) {
-    return OutcomeEffect(
-      type: OutcomeEffectType.statusEffect,
-      statusEffect: effect,
-    );
-  }
+  const OutcomeEffect.healthChange(int this.amount)
+      : type = OutcomeEffectType.healthChange,
+        statName = null,
+        secondStatName = null,
+        statusEffect = null,
+        itemId = null;
 
-  factory OutcomeEffect.giveItem(String itemId) {
-    return OutcomeEffect(
-      type: OutcomeEffectType.giveItem,
-      itemId: itemId,
-    );
-  }
+  const OutcomeEffect.addStatus(StatusEffect effect)
+      : type = OutcomeEffectType.statusEffect,
+        statName = null,
+        secondStatName = null,
+        amount = null,
+        statusEffect = effect,
+        itemId = null;
 
-  factory OutcomeEffect.skipFloors(int floors) {
-    return OutcomeEffect(
-      type: OutcomeEffectType.skipFloors,
-      amount: floors,
-    );
-  }
+  const OutcomeEffect.giveItem(String this.itemId)
+      : type = OutcomeEffectType.giveItem,
+        statName = null,
+        secondStatName = null,
+        amount = null,
+        statusEffect = null;
 
-  factory OutcomeEffect.loseFloors(int floors) {
-    return OutcomeEffect(
-      type: OutcomeEffectType.loseFloors,
-      amount: floors,
-    );
-  }
+  const OutcomeEffect.skipFloors(int floors)
+      : type = OutcomeEffectType.skipFloors,
+        statName = null,
+        secondStatName = null,
+        amount = floors,
+        statusEffect = null,
+        itemId = null;
 
-  factory OutcomeEffect.swapStats(String stat1, String stat2) {
-    return OutcomeEffect(
-      type: OutcomeEffectType.swapStats,
-      statName: stat1,
-      secondStatName: stat2,
-    );
-  }
+  const OutcomeEffect.loseFloors(int floors)
+      : type = OutcomeEffectType.loseFloors,
+        statName = null,
+        secondStatName = null,
+        amount = floors,
+        statusEffect = null,
+        itemId = null;
 
-  factory OutcomeEffect.maxHealthChange(int amount) {
-    return OutcomeEffect(
-      type: OutcomeEffectType.maxHealthChange,
-      amount: amount,
-    );
-  }
+  const OutcomeEffect.swapStats(String stat1, String stat2)
+      : type = OutcomeEffectType.swapStats,
+        statName = stat1,
+        secondStatName = stat2,
+        amount = null,
+        statusEffect = null,
+        itemId = null;
+
+  const OutcomeEffect.maxHealthChange(int this.amount)
+      : type = OutcomeEffectType.maxHealthChange,
+        statName = null,
+        secondStatName = null,
+        statusEffect = null,
+        itemId = null;
 }
 
 /// Types of outcome effects
 enum OutcomeEffectType {
-  statChange,       // Modify a stat permanently for this run
-  healthChange,     // Heal or damage
-  statusEffect,     // Apply buff/debuff
-  giveItem,         // Give consumable item
-  skipFloors,       // Skip forward
-  loseFloors,       // Go backwards
-  swapStats,        // Swap two stats
-  maxHealthChange,  // Increase/decrease max HP
+  statChange, // Modify a stat permanently for this run
+  healthChange, // Heal or damage
+  statusEffect, // Apply buff/debuff
+  giveItem, // Give consumable item
+  skipFloors, // Skip forward
+  loseFloors, // Go backwards
+  swapStats, // Swap two stats
+  maxHealthChange, // Increase/decrease max HP
 }

@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="" />
+    <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="This is supposed to be the initial commit but failed first">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/main.dart" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -23,6 +27,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;UnkGuy&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/UnkGuy/PocketCrawler.git&quot;,
+    &quot;accountId&quot;: &quot;7b44297c-763f-4dc8-bf2c-cd56edafa80f&quot;
+  }
+}</component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -36,10 +52,12 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Flutter.main.dart.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
@@ -49,6 +67,17 @@
     "show.migrate.to.gradle.popup": "false"
   }
 }]]></component>
+  <component name="RunManager">
+    <configuration name="main.dart" type="FlutterRunConfigurationType" factoryName="Flutter" temporary="true" nameIsGenerated="true">
+      <option name="filePath" value="$PROJECT_DIR$/pocketcrawler/lib/main.dart" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Flutter.main.dart" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="" />
@@ -57,6 +86,19 @@
       <option name="presentableId" value="Default" />
       <updated>1764258952094</updated>
     </task>
+    <task id="LOCAL-00001" summary="This is supposed to be the initial commit but failed first">
+      <option name="closed" value="true" />
+      <created>1764267096521</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1764267096522</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="This is supposed to be the initial commit but failed first" />
+    <option name="LAST_COMMIT_MESSAGE" value="This is supposed to be the initial commit but failed first" />
   </component>
 </project>
