@@ -34,7 +34,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             const Text(
-              'DUNGEON PET',
+              'POCKET CRAWLER',
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,

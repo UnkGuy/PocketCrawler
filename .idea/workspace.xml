@@ -5,9 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="This is supposed to be the initial commit but failed first">
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_SDK.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_SDK.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/screens/home_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/screens/home_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/linux/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/linux/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/linux/flutter/generated_plugin_registrant.h" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/linux/flutter/generated_plugin_registrant.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/linux/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/linux/flutter/generated_plugins.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/macos/Flutter/GeneratedPluginRegistrant.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/test/widget_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/test/widget_test.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/windows/flutter/generated_plugin_registrant.h" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/windows/flutter/generated_plugin_registrant.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/windows/flutter/generated_plugins.cmake" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,6 +39,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -33,12 +52,12 @@
     &quot;assignee&quot;: &quot;UnkGuy&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/UnkGuy/PocketCrawler.git&quot;,
-    &quot;accountId&quot;: &quot;7b44297c-763f-4dc8-bf2c-cd56edafa80f&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/UnkGuy/PocketCrawler.git",
+    "accountId": "301dff33-0940-4eda-8112-c5cddd568947"
   }
-}</component>
+}]]></component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -62,11 +81,18 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "master",
-    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable",
+    "git-widget-placeholder": "UI__forDungeon",
+    "io.flutter.reload.alreadyRun": "true",
+    "last_opened_file_path": "C:/Users/Z/StudioProjects/PocketCrawler/pocketcrawler/assets/backgrounds",
+    "settings.editor.selected.configurable": "dart.settings",
     "show.migrate.to.gradle.popup": "false"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Z\StudioProjects\PocketCrawler\pocketcrawler\assets\backgrounds" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="main.dart" type="FlutterRunConfigurationType" factoryName="Flutter" temporary="true" nameIsGenerated="true">
       <option name="filePath" value="$PROJECT_DIR$/pocketcrawler/lib/main.dart" />
