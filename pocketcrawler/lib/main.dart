@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+//import 'screens/home_screen.dart';
+import 'petsim/pet_screen.dart';
 
 void main() {
   runApp(const DungeonPetApp());
@@ -38,7 +39,7 @@ class DungeonPetApp extends StatelessWidget {
           bodyMedium: TextStyle(color: Colors.white70),
         ),
       ),
-      home: const HomeScreen(),
+      home: const PetScreen(),
     );
   }
 }
