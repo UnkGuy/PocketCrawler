@@ -44,7 +44,7 @@ flutter_launcher_icons:
   image_path: "assets/icon/pc.png"
   # Optional: For adaptive icons on Android 8.0+
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icon/icon.png"
+  adaptive_icon_foreground: "assets/icon/pc.png"
 
 
 flutter:

@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="Basically done as a beta">
-      <change afterPath="$PROJECT_DIR$/pocketcrawler/assets/icon/pc.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pocketcrawler/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/pubspec.lock" afterDir="false" />
+    <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="added an icon">
       <change beforePath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -122,7 +118,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765533760103</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="added an icon">
+      <option name="closed" value="true" />
+      <created>1765534414625</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1765534414625</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -140,6 +144,7 @@
     <MESSAGE value="This is supposed to be the initial commit but failed first" />
     <MESSAGE value="Worked on some very minimal UI for the dungeon part and updated main and scenario" />
     <MESSAGE value="Basically done as a beta" />
-    <option name="LAST_COMMIT_MESSAGE" value="Basically done as a beta" />
+    <MESSAGE value="added an icon" />
+    <option name="LAST_COMMIT_MESSAGE" value="added an icon" />
   </component>
 </project>
