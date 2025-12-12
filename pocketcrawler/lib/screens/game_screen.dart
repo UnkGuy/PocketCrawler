@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import '../dungeon/game_state.dart';
 import '../dungeon/scenario.dart';
@@ -49,7 +51,7 @@ class _GameScreenState extends State<GameScreen> {
           result.resultType,
           style: TextStyle(
             color: result.success ? Colors.green : Colors.red,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.normal,
           ),
         ),
         content: Column(
@@ -150,7 +152,7 @@ class _GameScreenState extends State<GameScreen> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/backgrounds/Dungeon1.gif"),
+            image: AssetImage("assets/backgrounds/Dungeon${min(3, (widget.gameState.currentFloor/20).ceil())}.gif"),
             filterQuality: FilterQuality.none,
             fit: BoxFit.cover,
           )
@@ -246,6 +248,16 @@ class _GameScreenState extends State<GameScreen> {
                             backgroundColor: Color.fromRGBO(41, 41, 41, 1.0),
                             tooltipContent: Column(
                               children: [
+                                Container(
+                                  width:50,
+                                  height:50,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: AssetImage("assets/items/${widget.gameState.inventory[index].id}.png"),
+                                      filterQuality: FilterQuality.none
+                                    ),
+                                  ),
+                                ),
                                 Text("${widget.gameState.inventory[index].name}",style: TextStyle(color: Colors.grey[100]),),
                                 SizedBox(height: 10,),
                                 Text("${widget.gameState.inventory[index].description}",style: TextStyle(color: Colors.grey),),
@@ -335,7 +347,7 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               Text(
                 choice.text,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
               ),
               const SizedBox(height: 8),
               Row(

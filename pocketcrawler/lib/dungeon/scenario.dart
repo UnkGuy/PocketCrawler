@@ -188,6 +188,7 @@ class Outcome {
   }
 
   String _applyStatusEffect(OutcomeEffect effect, Pet pet) {
+
     if (effect.statusEffect == null) return '';
     pet.addStatusEffect(effect.statusEffect!);
     return 'Gained: ${effect.statusEffect!.name}';

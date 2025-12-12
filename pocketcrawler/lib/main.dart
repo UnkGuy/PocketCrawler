@@ -10,6 +10,7 @@ class DungeonPetApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const String customFont = "Jersey15";
     return MaterialApp(
       title: 'Dungeon Pet',
       debugShowCheckedModeBanner: false,
@@ -17,6 +18,7 @@ class DungeonPetApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
+        fontFamily: customFont,
 
         // Defining colors via ColorScheme is the safest way to avoid conflicts
         colorScheme: ColorScheme.fromSeed(
