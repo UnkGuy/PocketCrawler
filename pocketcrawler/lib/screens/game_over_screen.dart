@@ -8,12 +8,12 @@ import '../pet.dart'; // Import Pet class
 
 class GameOverScreen extends StatefulWidget {
   final RunSummary summary;
-  final Pet pet; // <--- Add this to receive the modified pet
+  final Pet pet;
 
   const GameOverScreen({
     super.key,
     required this.summary,
-    required this.pet, // <--- Require it here
+    required this.pet,
   });
 
   @override
@@ -22,19 +22,17 @@ class GameOverScreen extends StatefulWidget {
 
 class _GameOverScreenState extends State<GameOverScreen> {
 
-// Inside _GameOverScreenState
-
   Future<void> _returnToPetSim() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // 1. Get previous hunger (since Dungeon didn't track it, don't reset it to 0)
+    // 1. Get previous hunger
     int preservedHunger = 50;
     String? oldSave = prefs.getString('pet_save_data');
     if (oldSave != null) {
       final oldData = jsonDecode(oldSave);
       preservedHunger = oldData['hunger'] ?? 50;
 
-      // Optional: Add "Adventurer's Appetite" (make them hungry after a run)
+      // Adventurer's Appetite: make them hungry after a run
       preservedHunger += 20;
       if (preservedHunger > 100) preservedHunger = 100;
     }
@@ -42,12 +40,9 @@ class _GameOverScreenState extends State<GameOverScreen> {
     // 2. Create the new save data using the MODIFIED pet from the dungeon
     Map<String, dynamic> updatedData = {
       'name': widget.pet.name,
-      // Ensure HP is at least 1 so they don't instant-die on the home screen
-      'hp': widget.pet.currentHealth <= 0 ? 1 : widget.pet.currentHealth,
+      'hp': widget.pet.currentHealth <= 0 ? 1 : widget.pet.currentHealth, // Prevent 0 HP death loop
       'maxHp': widget.pet.maxHealth,
       'hunger': preservedHunger,
-
-      // SAVE THE MODIFIED STATS
       'strength': widget.pet.strength,
       'dexterity': widget.pet.dexterity,
       'constitution': widget.pet.constitution,
@@ -61,7 +56,7 @@ class _GameOverScreenState extends State<GameOverScreen> {
 
     if (!mounted) return;
 
-    // 4. Go back to Pet Screen (this triggers initState -> _loadPetStats)
+    // 4. Go back to Pet Screen
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const PetScreen()),
@@ -97,6 +92,8 @@ class _GameOverScreenState extends State<GameOverScreen> {
               ),
             ),
             const SizedBox(height: 30),
+
+            // --- RUN STATISTICS CARD ---
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -104,7 +101,7 @@ class _GameOverScreenState extends State<GameOverScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Statistics',
+                      'Run Statistics',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const Divider(height: 20),
@@ -118,6 +115,8 @@ class _GameOverScreenState extends State<GameOverScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
+            // --- CURRENT STATS CARD (REPLACED STAT CHANGES) ---
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -125,30 +124,24 @@ class _GameOverScreenState extends State<GameOverScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Stat Changes',
+                      'Final Stats',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const Divider(height: 20),
-                    if (widget.summary.statChanges.isEmpty)
-                      const Text("No stats changed this run.", style: TextStyle(color: Colors.white54))
-                    else
-                      ...widget.summary.statChanges.entries.map((entry) {
-                        final change = entry.value;
-                        final color = change > 0 ? Colors.green : change < 0 ? Colors.red : Colors.white70;
-                        final prefix = change > 0 ? '+' : '';
-                        return _buildStatRow(
-                          entry.key.toUpperCase(),
-                          '$prefix$change',
-                          valueColor: color,
-                        );
-                      }),
+                    _buildAttributeRow('Strength', widget.pet.strength),
+                    _buildAttributeRow('Dexterity', widget.pet.dexterity),
+                    _buildAttributeRow('Constitution', widget.pet.constitution),
+                    _buildAttributeRow('Intelligence', widget.pet.intelligence),
+                    _buildAttributeRow('Wisdom', widget.pet.wisdom),
+                    _buildAttributeRow('Charisma', widget.pet.charisma),
                   ],
                 ),
               ),
             ),
+
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: _returnToPetSim, // <--- Call our new function
+              onPressed: _returnToPetSim,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.all(16),
                 backgroundColor: Colors.deepPurple,
@@ -161,6 +154,7 @@ class _GameOverScreenState extends State<GameOverScreen> {
     );
   }
 
+  // Helper for generic text rows
   Widget _buildStatRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -174,6 +168,31 @@ class _GameOverScreenState extends State<GameOverScreen> {
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: valueColor ?? Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper specific for Attributes (calculates the +modifier)
+  Widget _buildAttributeRow(String label, int value) {
+    int modifier = ((value - 10) / 2).floor();
+    String modSign = modifier >= 0 ? '+' : '';
+    String displayValue = "$value ($modSign$modifier)";
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 18)),
+          Text(
+            displayValue,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.amberAccent, // Highlights the stats nicely
             ),
           ),
         ],

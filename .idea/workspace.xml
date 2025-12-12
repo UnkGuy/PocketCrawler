@@ -5,7 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="added an icon">
-      <change beforePath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_over_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_over_screen.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -126,7 +127,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765534414625</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="added an icon">
+      <option name="closed" value="true" />
+      <created>1765534733466</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1765534733466</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
