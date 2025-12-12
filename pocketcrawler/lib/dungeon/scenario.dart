@@ -1,6 +1,42 @@
 import 'dart:math';
 import '../pet.dart';
 import 'dice_roller.dart';
+import 'package:flutter/material.dart';
+
+class PetController extends ChangeNotifier {
+  Color flashColor = Colors.transparent;
+  String effects = "";
+
+  void triggerEffect(Color color, String debuff){
+    flashColor = color;
+    effects = debuff;
+    notifyListeners();
+  }
+
+  void triggerShake(){
+    flashColor = Colors.white10;
+    effects = "";
+    notifyListeners();
+  }
+
+  void triggerDamage() {
+    flashColor = Colors.red;
+    effects = "";
+    notifyListeners();
+  }
+
+  void triggerHeal() {
+    flashColor = Colors.green;
+    effects = "";
+    notifyListeners();
+  }
+
+  void triggerStatBoost() {
+    flashColor = Colors.blue;
+    effects = "";
+    notifyListeners();
+  }
+}
 
 /// Represents a scenario encounter in the dungeon
 class Scenario {
@@ -127,11 +163,12 @@ class Outcome {
   });
 
   /// Apply all effects to the pet and return a detailed result message
-  String apply(Pet pet, GameStateCallback? callback) {
+  String apply(Pet pet, GameStateCallback? callback,PetController? controller) {
     StringBuffer resultMessage = StringBuffer(description);
 
     for (var effect in effects) {
-      String effectMessage = _applyEffect(effect, pet, callback);
+      // Pass the controller down to the individual effects
+      String effectMessage = _applyEffect(effect, pet, callback, controller);
       if (effectMessage.isNotEmpty) {
         resultMessage.write('\n$effectMessage');
       }
@@ -141,30 +178,42 @@ class Outcome {
   }
 
   /// Apply a single effect and return its message
-  String _applyEffect(OutcomeEffect effect, Pet pet, GameStateCallback? callback) {
+  String _applyEffect(OutcomeEffect effect, Pet pet, GameStateCallback? callback, PetController? controller) {
     switch (effect.type) {
       case OutcomeEffectType.statChange:
         return _applyStatChange(effect, pet);
 
       case OutcomeEffectType.healthChange:
+        if (effect.amount != null) {
+          if (effect.amount! < 0) {
+            controller?.triggerDamage(); // Red flash + Shake
+          } else {
+            controller?.triggerHeal();   // Green flash
+          }
+        }
         return _applyHealthChange(effect, pet);
 
       case OutcomeEffectType.statusEffect:
+        controller?.triggerEffect(effect.statusEffect!.color, effect.statusEffect!.name);
         return _applyStatusEffect(effect, pet);
 
       case OutcomeEffectType.giveItem:
         return _applyGiveItem(effect, callback);
 
       case OutcomeEffectType.skipFloors:
+        controller?.triggerShake();
         return _applySkipFloors(effect, callback);
 
       case OutcomeEffectType.loseFloors:
+        controller?.triggerShake();
         return _applyLoseFloors(effect, callback);
 
       case OutcomeEffectType.swapStats:
+        controller?.triggerStatBoost();
         return _applySwapStats(effect, pet);
 
       case OutcomeEffectType.maxHealthChange:
+        effect.amount! > 0 ? controller?.triggerHeal() : controller?.triggerDamage();
         return _applyMaxHealthChange(effect, pet);
 
       }

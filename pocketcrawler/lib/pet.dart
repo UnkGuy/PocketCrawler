@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
+
 import 'dungeon/dice_roller.dart';
 
 /// Represents a pet with DND-style ability scores and health system
@@ -267,6 +269,7 @@ class StatusEffect {
   String description;
   StatusEffectType type;
   Map<String, int>? statModifiers;
+  Color color;
 
   final bool canStack;
 
@@ -275,6 +278,7 @@ class StatusEffect {
     required this.type,
     required this.duration,
     required this.description,
+    this.color=Colors.white,
     this.statModifiers,
     this.canStack = true, // Default to true (Stacking) if you prefer
   });

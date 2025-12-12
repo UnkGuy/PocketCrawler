@@ -4,21 +4,13 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="UIchanges">
-      <change afterPath="$PROJECT_DIR$/pocketcrawler/assets/customfonts/PixelifySans-VariableFont_wght.ttf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pocketcrawler/assets/customfonts/README.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pocketcrawler/assets/customfonts/static/PixelifySans-Bold.ttf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pocketcrawler/assets/customfonts/static/PixelifySans-Medium.ttf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pocketcrawler/assets/customfonts/static/PixelifySans-Regular.ttf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pocketcrawler/assets/customfonts/static/PixelifySans-SemiBold.ttf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+    <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="Updated UI and added item and background sprites">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/game_state.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/game_state.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario_library.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario_library.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/main.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/pet.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/pet.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/screens/home_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/screens/home_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -138,12 +130,21 @@
       <option name="project" value="LOCAL" />
       <updated>1765294479558</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Updated UI and added item and background sprites">
+      <option name="closed" value="true" />
+      <created>1765519263941</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1765519263941</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="This is supposed to be the initial commit but failed first" />
     <MESSAGE value="UIchanges" />
-    <option name="LAST_COMMIT_MESSAGE" value="UIchanges" />
+    <MESSAGE value="Updated UI and added item and background sprites" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated UI and added item and background sprites" />
   </component>
 </project>
