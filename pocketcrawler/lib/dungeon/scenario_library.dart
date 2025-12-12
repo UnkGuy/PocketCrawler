@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../pet.dart';
 import 'scenario.dart';
 
@@ -145,6 +147,7 @@ class ScenarioLibrary {
             OutcomeEffect.addStatus(StatusEffect(
               name: "Statue's Curse",
               type: StatusEffectType.cursed,
+              color: Color.fromRGBO(110, 70, 85, 1.0),
               duration: 3,
               description: 'Strength checks have disadvantage',
               canStack: false
@@ -182,6 +185,7 @@ class ScenarioLibrary {
             OutcomeEffect.healthChange(-4),
             OutcomeEffect.addStatus(StatusEffect(
               name: 'Poisoned',
+              color: Color.fromRGBO(157, 70, 228, 1.0),
               type: StatusEffectType.statPenalty,
               duration: 5,
               description: 'All stats reduced by 1',
@@ -333,6 +337,7 @@ class ScenarioLibrary {
             OutcomeEffect.statChange('wisdom', 4),
             OutcomeEffect.addStatus(StatusEffect(
               name: 'Fey Blessing',
+              color: Color.fromRGBO(247, 255, 200, 1.0),
               type: StatusEffectType.blessed,
               duration: 10,
               description: 'Advantage on Wisdom checks',
@@ -361,6 +366,7 @@ class ScenarioLibrary {
             OutcomeEffect.statChange('constitution', 3),
             OutcomeEffect.addStatus(StatusEffect(
               name: 'Mushroom Enhancement',
+              color: Color.fromRGBO(145, 127, 223, 1.0),
               type: StatusEffectType.statBoost,
               duration: 8,
               description: '+2 to all stats',
@@ -382,6 +388,7 @@ class ScenarioLibrary {
             OutcomeEffect.addStatus(StatusEffect(
               name: 'Severe Poisoning',
               type: StatusEffectType.cursed,
+              color: Color.fromRGBO(104, 147, 72, 1.0),
               duration: 10,
               description: 'All stats reduced by 2',
               statModifiers: {
@@ -457,6 +464,7 @@ class ScenarioLibrary {
           effects: [
             OutcomeEffect.statChange('charisma', 5),
             OutcomeEffect.addStatus(StatusEffect(
+              color: Color.fromRGBO(250, 172, 36, 1.0),
               name: 'Bardic Inspiration',
               type: StatusEffectType.advantage,
               duration: 8,
@@ -494,6 +502,7 @@ class ScenarioLibrary {
             OutcomeEffect.loseFloors(4),
             OutcomeEffect.addStatus(StatusEffect(
               name: 'Bard\'s Curse',
+              color: Color.fromRGBO(236, 0, 63, 1.0),
               type: StatusEffectType.disadvantage,
               duration: 7,
               description: 'Disadvantage on all checks',

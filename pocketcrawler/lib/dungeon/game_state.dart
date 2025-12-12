@@ -116,7 +116,7 @@ class GameState {
   }
 
   /// Make a choice in the current scenario
-  ChoiceResult makeChoice(Choice choice) {
+  ChoiceResult makeChoice(Choice choice,PetController myPetController) {
     choicesMade++;
 
     // Perform ability check
@@ -134,7 +134,7 @@ class GameState {
         ? choice.successOutcome
         : choice.failureOutcome;
 
-    String outcomeMessage = outcome.apply(pet, _handleOutcomeCallback);
+    String outcomeMessage = outcome.apply(pet, _handleOutcomeCallback,myPetController);
 
     // Log to history
     _logChoice(choice, checkResult);
