@@ -143,10 +143,11 @@ class ScenarioLibrary {
           effects: [
             OutcomeEffect.statChange('strength', -3),
             OutcomeEffect.addStatus(StatusEffect(
-              name: 'Statue\'s Curse',
+              name: "Statue's Curse",
               type: StatusEffectType.cursed,
               duration: 3,
               description: 'Strength checks have disadvantage',
+              canStack: false
             )),
           ],
         ),

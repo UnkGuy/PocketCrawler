@@ -134,7 +134,23 @@ class Pet {
 
   /// Add a status effect (buff/debuff)
   void addStatusEffect(StatusEffect effect) {
-    activeEffects.add(effect);
+    StatusEffect newEffect = effect.copyWith();
+    if(newEffect.canStack){
+      activeEffects.add(newEffect);
+      return;
+    }
+
+    final existingIndex = activeEffects.indexWhere((e) => e.name == newEffect.name);
+    if (existingIndex != -1) {
+      // It exists! Refresh the duration of the currently active one.
+      activeEffects[existingIndex].duration = newEffect.duration;
+      //print("Refreshed duration for: ${newEffect.name}");
+    } else {
+      // It doesn't exist yet, so we add it.
+      activeEffects.add(newEffect);
+      //print("Added new unique effect: ${newEffect.name}");
+    }
+    //print(activeEffects);
   }
 
   /// Check if pet has a specific status effect type
@@ -144,10 +160,12 @@ class Pet {
 
   /// Decrement all status effect durations and remove expired ones
   void decrementEffectDurations() {
-    for (var effect in activeEffects) {
+    for (StatusEffect effect in activeEffects) {
+      print(effect);
       effect.duration--;
+      //why does statue's curse not get removed
     }
-    activeEffects.removeWhere((effect) => effect.duration <= 0);
+    activeEffects.removeWhere((effects) => effects.duration <= 0);
   }
 
   // ============================================================================
@@ -245,6 +263,38 @@ Active Effects: ${activeEffects.length}
 /// Represents a temporary buff or debuff on the pet
 class StatusEffect {
   String name;
+  int duration;
+  String description;
+  StatusEffectType type;
+  Map<String, int>? statModifiers;
+
+  final bool canStack;
+
+  StatusEffect({
+    required this.name,
+    required this.type,
+    required this.duration,
+    required this.description,
+    this.statModifiers,
+    this.canStack = true, // Default to true (Stacking) if you prefer
+  });
+
+  // Ensure your copyWith handles the new property
+  StatusEffect copyWith({int? duration}) {
+    return StatusEffect(
+      name: this.name,
+      type: this.type,
+      duration: duration ?? this.duration,
+      description: this.description,
+      canStack: this.canStack, // Pass the flag along
+    );
+  }
+
+  @override
+  String toString() => '$name ($duration floors): $description';
+}
+class StatusEffect_old {
+  String name;
   StatusEffectType type;
   int duration; // in floors
   String description;
@@ -252,7 +302,7 @@ class StatusEffect {
   /// Optional: specific stat modifications
   Map<String, int>? statModifiers;
 
-  StatusEffect({
+  StatusEffect_old({
     required this.name,
     required this.type,
     required this.duration,
