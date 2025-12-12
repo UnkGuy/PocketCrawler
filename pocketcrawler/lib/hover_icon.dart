@@ -7,12 +7,12 @@ class SmartHoverTooltip extends StatefulWidget {
   final Color backgroundColor; // <--- New Parameter
 
   const SmartHoverTooltip({
-    Key? key,
+    super.key,
     required this.child,
     required this.tooltipContent,
     this.triggerOnLongPress = true,
     this.backgroundColor = Colors.white, // Default to white
-  }) : super(key: key);
+  });
 
   @override
   State<SmartHoverTooltip> createState() => _SmartHoverTooltipState();

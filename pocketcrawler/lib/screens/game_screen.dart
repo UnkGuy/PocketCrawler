@@ -1,5 +1,13 @@
 import 'dart:math';
+import 'dart:convert'; // For Web base64 decoding
+import 'dart:io';      // For Mobile File handling
+import 'dart:typed_data'; // For Uint8List
 
+import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// ... keep your existing imports (game_state, etc.)
 import 'package:flutter/material.dart';
 import '../dungeon/game_state.dart';
 import '../dungeon/scenario.dart';
@@ -21,11 +29,49 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
 
   final PetController myPetController = PetController();
+  File? mobileImage;
+  Uint8List? webImage;
+
+  // --- IMAGE LOADING LOGIC (Matches PetScreen) ---
+  Future<void> _loadCustomImage() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (kIsWeb) {
+      String? base64Image = prefs.getString('custom_pet_web');
+      if (base64Image != null) {
+        setState(() {
+          webImage = base64Decode(base64Image);
+        });
+      }
+    } else {
+      final String? path = prefs.getString('custom_pet_path');
+      if (path != null) {
+        final File imageFile = File(path);
+        if (await imageFile.exists()) {
+          setState(() {
+            mobileImage = imageFile;
+          });
+        }
+      }
+    }
+  }
+
+  // Helper to determine which image provider to use
+  ImageProvider _getPetImage() {
+    if (kIsWeb && webImage != null) {
+      return MemoryImage(webImage!);
+    } else if (!kIsWeb && mobileImage != null) {
+      return FileImage(mobileImage!);
+    }
+    // Fallback to the default if no custom image is found
+    return const AssetImage('assets/pets/pet_crystalcrab.gif');
+  }
 
   @override
   void initState() {
     super.initState();
     _loadNextScenario();
+    _loadCustomImage();
   }
 
   void _loadNextScenario() {
@@ -104,6 +150,7 @@ class _GameScreenState extends State<GameScreen> {
       MaterialPageRoute(
         builder: (context) => GameOverScreen(
           summary: widget.gameState.getSummary(),
+          pet: widget.gameState.pet, // <--- Pass the pet here!
         ),
       ),
     );
@@ -323,11 +370,14 @@ class _GameScreenState extends State<GameScreen> {
           //pet image
           DraggableBubble(
             controller: myPetController,
+            initialPosition: const Offset(250, 500), // Adjust based on screen
             size: 100,
-            child: Image.asset(
-              'assets/pets/pet_crystalcrab.gif',
+            child: Image(
+              image: _getPetImage(), // <--- THIS USES YOUR CUSTOM IMAGE
               fit: BoxFit.cover,
-              filterQuality: FilterQuality.none,
+              errorBuilder: (context, error, stackTrace) {
+                return Image.asset('assets/pets/pet_crystalcrab.gif');
+              },
             ),
           ),
         ],

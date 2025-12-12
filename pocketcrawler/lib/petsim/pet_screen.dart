@@ -2,7 +2,6 @@ import 'dart:async'; // For Timer
 import 'dart:convert'; // For Web: encoding images to text
 import 'dart:io'; // For Mobile: File handling
 import 'dart:math'; // For Random
-import 'dart:typed_data'; // For Web: handling image bytes
 
 import 'package:flutter/foundation.dart'; // To check kIsWeb
 import 'package:flutter/material.dart';
@@ -11,6 +10,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../pet.dart';
+import '../dungeon/game_state.dart'; // Required for Dungeon logic
+import '../screens/game_screen.dart'; // Required for Navigation
 
 class PetScreen extends StatefulWidget {
   const PetScreen({super.key});
@@ -44,80 +45,86 @@ class _PetScreenState extends State<PetScreen> {
   @override
   void initState() {
     super.initState();
-    myPet = Pet.rollStats("Loading..."); // Temporary placeholder
+    myPet = Pet.rollStats("Loading...");
     _generateDirt();
     _loadCustomImage();
 
     // LOAD SAVED STATS
     _loadPetStats();
-  }
 
-  // --- NEW FUNCTION ---
-  Future<void> _loadPetData() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? savedName = prefs.getString('pet_name');
-
-    if (savedName != null) {
-      setState(() {
-        myPet.name = savedName;
-      });
-    }
+    // Start the hunger timer
+    _startHungerTimer();
   }
 
   @override
   void dispose() {
     cooldownTimer?.cancel();
+    hungerTimer?.cancel();
     super.dispose();
+  }
+
+  // --- DUNGEON NAVIGATION ---
+  void _goToDungeon() async {
+    // 1. Create GameState from current Pet
+    final gameState = GameState(
+      pet: myPet,
+      maxFloor: 100,
+    );
+
+    // 2. Pause hunger so they don't starve while fighting
+    hungerTimer?.cancel();
+
+    // 3. Navigate to Dungeon
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameScreen(gameState: gameState),
+      ),
+    );
+
+    // 4. On Return: Resume life
+    if (mounted) {
+      _startHungerTimer();
+      _loadPetStats(); // Reload in case they died or leveled up
+    }
   }
 
   // --- IMAGE LOGIC (WEB + MOBILE) ---
 
   Future<void> _pickImage() async {
-    // Pick the image (Works on both Web & Mobile)
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
-      maxWidth: 800, // Resize to keep it small for Web storage
+      maxWidth: 800,
     );
 
     if (pickedFile != null) {
       final prefs = await SharedPreferences.getInstance();
 
       if (kIsWeb) {
-        // --- WEB LOGIC ---
-        // 1. Read the file as bytes (numbers), not a path
         final bytes = await pickedFile.readAsBytes();
-
-        // 2. Save to Browser "Cookies" (SharedPrefs) as a text string
         String base64Image = base64Encode(bytes);
         await prefs.setString('custom_pet_web', base64Image);
 
-        // 3. Update UI
         setState(() {
           webImage = bytes;
         });
       } else {
-        // --- MOBILE LOGIC ---
-        // 1. Get the safe folder
         final directory = await getApplicationDocumentsDirectory();
         final String newPath = '${directory.path}/custom_pet.png';
 
-        // 2. Copy the file there
         final File newImage = await File(pickedFile.path).copy(newPath);
-
-        // 3. Save the path string
         await prefs.setString('custom_pet_path', newPath);
 
-        // 4. Update UI
         setState(() {
           mobileImage = newImage;
         });
       }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("New look applied! 📸")),
-        );
-      }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("New look applied! 📸")),
+      );
     }
   }
 
@@ -125,7 +132,6 @@ class _PetScreenState extends State<PetScreen> {
     final prefs = await SharedPreferences.getInstance();
 
     if (kIsWeb) {
-      // --- WEB LOAD ---
       String? base64Image = prefs.getString('custom_pet_web');
       if (base64Image != null) {
         setState(() {
@@ -133,7 +139,6 @@ class _PetScreenState extends State<PetScreen> {
         });
       }
     } else {
-      // --- MOBILE LOAD ---
       final String? path = prefs.getString('custom_pet_path');
       if (path != null) {
         final File imageFile = File(path);
@@ -157,7 +162,6 @@ class _PetScreenState extends State<PetScreen> {
     }
   }
 
-  // Helper to choose the right image provider
   ImageProvider? _getCustomPetImage() {
     if (kIsWeb && webImage != null) {
       return MemoryImage(webImage!);
@@ -168,44 +172,35 @@ class _PetScreenState extends State<PetScreen> {
   }
 
   // --- LOGIC HELPERS ---
-  // --- NEW: SAVE SYSTEM ---
+
   void _startHungerTimer() {
     hungerTimer?.cancel();
-    // Run this logic every 5 seconds (Adjust 'seconds' to make it faster/slower)
     hungerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (!mounted) return;
 
       setState(() {
-        // 1. Increase Hunger
         hunger += 2;
-
-        // 2. Cap Hunger at 100
         if (hunger > 100) hunger = 100;
 
-        // 3. CONSEQUENCE: If hunger is high (over 80), lose HP
         if (hunger >= 80) {
           if (myPet.currentHealth > 0) {
-            myPet.currentHealth -= 2; // Lose 2 HP
+            myPet.currentHealth -= 2;
             if (myPet.currentHealth < 0) myPet.currentHealth = 0;
-
-            // Optional: Visual feedback
             debugPrint("Starving! HP dropping!");
           }
         }
       });
-
-      // Save continuously so we don't lose progress on crash
       _savePetStats();
     });
   }
+
   Future<void> _savePetStats() async {
     final prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> petData = {
       'name': myPet.name,
       'hp': myPet.currentHealth,
       'maxHp': myPet.maxHealth,
-      'hunger': hunger, // <--- ADD THIS
-      // Attributes
+      'hunger': hunger,
       'strength': myPet.strength,
       'dexterity': myPet.dexterity,
       'constitution': myPet.constitution,
@@ -227,12 +222,19 @@ class _PetScreenState extends State<PetScreen> {
         myPet.name = petData['name'];
         myPet.currentHealth = petData['hp'];
         myPet.maxHealth = petData['maxHp'];
-        hunger = petData['hunger'] ?? 0; // <--- LOAD THIS (Default to 0)
+        hunger = petData['hunger'] ?? 0;
 
-        // ... (rest of your attributes)
+        // --- ADD THESE LINES TO LOAD STATS ---
+        myPet.strength = petData['strength'] ?? myPet.strength;
+        myPet.dexterity = petData['dexterity'] ?? myPet.dexterity;
+        myPet.constitution = petData['constitution'] ?? myPet.constitution;
+        myPet.intelligence = petData['intelligence'] ?? myPet.intelligence;
+        myPet.wisdom = petData['wisdom'] ?? myPet.wisdom;
+        myPet.charisma = petData['charisma'] ?? myPet.charisma;
       });
     }
   }
+
   void _startNewPetProcess() {
     TextEditingController nameController = TextEditingController();
 
@@ -258,21 +260,19 @@ class _PetScreenState extends State<PetScreen> {
             ),
             ElevatedButton(
               child: const Text("Create"),
-              onPressed: () async { // Add async
+              onPressed: () async {
                 String newName = nameController.text.isEmpty
                     ? "New Pet"
                     : nameController.text;
 
                 setState(() {
-                  // 1. Roll NEW stats
                   myPet = Pet.rollStats(newName);
                   _resetToDefaultLook();
                 });
 
-                // 2. SAVE them immediately
                 await _savePetStats();
 
-                if (mounted) Navigator.of(context).pop();
+                if (context.mounted) Navigator.of(context).pop();
               },
             ),
           ],
@@ -280,6 +280,7 @@ class _PetScreenState extends State<PetScreen> {
       },
     );
   }
+
   void updatePetState(VoidCallback action) {
     setState(() {
       action();
@@ -298,11 +299,9 @@ class _PetScreenState extends State<PetScreen> {
 
   void _feedPet(int amount) {
     setState(() {
-      // 1. Reduce Hunger
       hunger -= 20;
       if (hunger < 0) hunger = 0;
 
-      // 2. Heal HP
       if (myPet.currentHealth < myPet.maxHealth) {
         myPet.heal(amount);
       }
@@ -327,7 +326,6 @@ class _PetScreenState extends State<PetScreen> {
     setState(() {
       rubMeter += 5.0;
       if (rubMeter > 100) {
-        // Stats Logic
         final random = Random();
         final stats = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
         stats.shuffle();
@@ -342,7 +340,6 @@ class _PetScreenState extends State<PetScreen> {
           myPet.applyTempModifier(nerfStat, -nerfAmount);
         });
 
-        // Reset
         rubMeter = 0;
         lastRewardTime = DateTime.now();
         secondsRemaining = 60;
@@ -392,7 +389,7 @@ class _PetScreenState extends State<PetScreen> {
   }
 
   void _editPetName() {
-    TextEditingController nameController = TextEditingController(text: myPet.name); // Pre-fill current name
+    TextEditingController nameController = TextEditingController(text: myPet.name);
 
     showDialog(
       context: context,
@@ -405,7 +402,7 @@ class _PetScreenState extends State<PetScreen> {
               hintText: "Enter new name",
               suffixIcon: Icon(Icons.edit),
             ),
-            autofocus: true, // Keyboard pops up automatically
+            autofocus: true,
           ),
           actions: [
             TextButton(
@@ -414,17 +411,18 @@ class _PetScreenState extends State<PetScreen> {
             ),
             ElevatedButton(
               child: const Text("Save"),
-              onPressed: () async { // <--- 1. Add 'async' here
+              onPressed: () async {
                 if (nameController.text.isNotEmpty) {
-                  // 2. Save to Storage
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setString('pet_name', nameController.text);
 
-                  // 3. Update Memory (UI)
+                  if (!mounted) return;
+
                   setState(() {
                     myPet.name = nameController.text;
                   });
                 }
+
                 if (mounted) Navigator.of(context).pop();
               },
             ),
@@ -438,7 +436,6 @@ class _PetScreenState extends State<PetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine if we have a custom image to show
     bool hasCustomImage = (kIsWeb && webImage != null) || (!kIsWeb && mobileImage != null);
 
     return Scaffold(
@@ -446,26 +443,24 @@ class _PetScreenState extends State<PetScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        centerTitle: true, // <--- 1. CENTERS THE TITLE
-
-        // <--- 2. MAKES IT CLICKABLE
+        centerTitle: true,
         title: GestureDetector(
           onTap: _editPetName,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.2), // Subtle background
+              color: Colors.black.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min, // Shrinks to fit text size
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   myPet.name,
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.edit, size: 16, color: Colors.white70), // Little pencil icon
+                const Icon(Icons.edit, size: 16, color: Colors.white70),
               ],
             ),
           ),
@@ -498,23 +493,20 @@ class _PetScreenState extends State<PetScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // --- NEW HEALTH BAR SECTION ---
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0), // Less padding to fit icon
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center, // Center icon vertically
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 1. THE HP ICON
               Image.asset(
                 'assets/hp.png',
-                width: 40, // Adjust size
+                width: 40,
                 height: 40,
                 errorBuilder: (c, o, s) => const Icon(Icons.favorite, color: Colors.red, size: 40),
               ),
 
-              const SizedBox(width: 15), // Space between icon and bar
+              const SizedBox(width: 15),
 
-              // 2. THE TEXT AND BAR (Expanded to fill width)
               Expanded(
                 child: Column(
                   children: [
@@ -530,22 +522,20 @@ class _PetScreenState extends State<PetScreen> {
                     LinearProgressIndicator(
                       value: myPet.currentHealth / myPet.maxHealth,
                       color: Colors.redAccent,
-                      backgroundColor: Colors.black.withOpacity(0.3), // Updated for modern Flutter
+                      backgroundColor: Colors.black.withValues(alpha: 0.3),
                       minHeight: 10,
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    // ... inside _buildPetArea, below the HP LinearProgressIndicator ...
-                    const SizedBox(height: 8), // Space between HP and Hunger
-                    // HUNGER BAR
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         const Text("Hunger", style: TextStyle(color: Colors.white, fontSize: 12)),
                         const SizedBox(width: 10),
                         Expanded(
                           child: LinearProgressIndicator(
-                            value: hunger / 100, // 0.0 to 1.0
-                            color: Colors.orange, // Orange for hunger
-                            backgroundColor: Colors.black.withOpacity(0.3),
+                            value: hunger / 100,
+                            color: Colors.orange,
+                            backgroundColor: Colors.black.withValues(alpha: 0.3),
                             minHeight: 6,
                             borderRadius: BorderRadius.circular(5),
                           ),
@@ -561,7 +551,6 @@ class _PetScreenState extends State<PetScreen> {
 
         const SizedBox(height: 30),
 
-        // --- PET AVATAR LOGIC (Same as before) ---
         DragTarget<String>(
           onWillAcceptWithDetails: (details) => selectedTool == 'food',
           onAcceptWithDetails: (details) {
@@ -595,7 +584,7 @@ class _PetScreenState extends State<PetScreen> {
                         width: 4,
                       ),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20)
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20)
                       ],
                     ),
                     child: !hasCustomImage
@@ -622,25 +611,22 @@ class _PetScreenState extends State<PetScreen> {
     );
   }
 
-// --- MODIFIED TOOLBAR (ALL EMOJIS) ---
   Widget _buildToolBar() {
     const double toolEmojiSize = 30.0;
 
     return Container(
       padding: const EdgeInsets.all(20),
-      // Note: Using 'withOpacity' for wider Flutter compatibility.
-      // Use 'Colors.black.withValues(alpha: 0.2)' if on Flutter 3.27+
-      color: Colors.black.withOpacity(0.2),
+      color: Colors.black.withValues(alpha: 0.2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // 1. HAND BUTTON (Emoji: 🫳)
-          _toolButton('hand', '🫳'), // Alternative: 👋 or ✋
+          // 1. HAND BUTTON
+          _toolButton('hand', '🫳'),
 
-          // 2. SOAP BUTTON (Emoji: 🧼)
-          _toolButton('soap', '🧼'), // Alternative: 🧽
+          // 2. SOAP BUTTON
+          _toolButton('soap', '🧼'),
 
-          // 3. CAMERA BUTTON (Emoji: 📸)
+          // 3. CAMERA BUTTON
           GestureDetector(
             onTap: _pickImage,
             child: Container(
@@ -649,20 +635,31 @@ class _PetScreenState extends State<PetScreen> {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              // Replaced Icon with Text Emoji
               child: const Text('📸', style: TextStyle(fontSize: toolEmojiSize)),
             ),
           ),
 
-          // 4. FEED BUTTON (Emoji: 🍗)
+          // 4. DUNGEON BUTTON (Sword)
+          GestureDetector(
+            onTap: _goToDungeon,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.8),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: const Text('⚔️', style: TextStyle(fontSize: toolEmojiSize)),
+            ),
+          ),
+
+          // 5. FOOD BUTTON (Draggable)
           Draggable<String>(
             data: 'food',
-            // Feedback: The giant emoji while dragging (wrapped in Material for clean rendering)
             feedback: const Material(
               color: Colors.transparent,
               child: Text("🍗", style: TextStyle(fontSize: 50)),
             ),
-            // ChildWhenDragging: Ghosted version staying behind
             childWhenDragging: Opacity(
               opacity: 0.5,
               child: Container(
@@ -672,11 +669,9 @@ class _PetScreenState extends State<PetScreen> {
               ),
             ),
             onDragStarted: () => setState(() => selectedTool = 'food'),
-            // Child: The normal button state
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              // Replaced Icon with Text Emoji
               child: const Text("🍗", style: TextStyle(fontSize: toolEmojiSize)),
             ),
           ),
@@ -685,8 +680,6 @@ class _PetScreenState extends State<PetScreen> {
     );
   }
 
-  // --- MODIFIED HELPER FUNCTION ---
-  // Now accepts a String emoji instead of IconData
   Widget _toolButton(String tool, String emoji) {
     bool isSelected = selectedTool == tool;
     bool isOnCooldown = tool == 'hand' && secondsRemaining > 0;
@@ -697,7 +690,7 @@ class _PetScreenState extends State<PetScreen> {
           : () {
         setState(() {
           if (selectedTool == tool) {
-            selectedTool = 'hand'; // Deselect if already active
+            selectedTool = 'hand';
           } else {
             selectedTool = tool;
           }
@@ -707,16 +700,14 @@ class _PetScreenState extends State<PetScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          // Background color changes based on selection state
           color: isOnCooldown
               ? Colors.grey
               : (isSelected ? Colors.blueAccent : Colors.white),
           shape: BoxShape.circle,
         ),
         child: isOnCooldown
-        // Cooldown Timer Text
             ? SizedBox(
-          width: 30, // Fixed width to match emoji size roughly
+          width: 30,
           height: 30,
           child: Center(
             child: Text(
@@ -725,10 +716,9 @@ class _PetScreenState extends State<PetScreen> {
             ),
           ),
         )
-        // The Emoji Text
             : Text(
           emoji,
-          style: const TextStyle(fontSize: 30.0), // Fixed size for all emojis
+          style: const TextStyle(fontSize: 30.0),
         ),
       ),
     );
@@ -762,12 +752,9 @@ class _PetScreenState extends State<PetScreen> {
                 String statName = stats[index];
                 int value = myPet.getTotalStat(statName);
 
-                // Logic: (Score - 10) / 2
                 int modifier = (value - 10) ~/ 2;
                 String modString = modifier >= 0 ? "+$modifier" : "$modifier";
 
-                // DYNAMIC IMAGE PATH LOGIC
-                // "Strength" becomes "assets/strength.png"
                 String imagePath = "assets/${statName.toLowerCase()}.png";
 
                 return Container(
@@ -775,18 +762,16 @@ class _PetScreenState extends State<PetScreen> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2))
                     ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 1. THE PNG IMAGE
                       Image.asset(
                         imagePath,
-                        width: 40, // Adjust size as needed
+                        width: 40,
                         height: 40,
-                        // Optional: If you don't have images yet, this prevents a crash
                         errorBuilder: (context, error, stackTrace) {
                           return const Icon(Icons.broken_image, color: Colors.grey);
                         },
@@ -794,7 +779,6 @@ class _PetScreenState extends State<PetScreen> {
 
                       const SizedBox(height: 8),
 
-                      // 2. VALUE
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -822,7 +806,6 @@ class _PetScreenState extends State<PetScreen> {
 
                       const SizedBox(height: 4),
 
-                      // 3. STAT NAME
                       Text(
                         statName.toUpperCase(),
                         style: TextStyle(
