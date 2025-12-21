@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // For saving data
 
 import '../dungeon/game_state.dart';
-import '../petsim/pet_screen.dart'; // Import PetScreen
+import 'pet_screen.dart'; // Import PetScreen
 import '../pet.dart'; // Import Pet class
 
 class GameOverScreen extends StatefulWidget {

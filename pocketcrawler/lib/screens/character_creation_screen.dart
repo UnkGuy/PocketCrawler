@@ -1,13 +1,10 @@
-import 'dart:convert'; // For jsonEncode
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // For saving data
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../pet.dart';
-import '../petsim/pet_screen.dart'; // Import the Pet Screen
-
-// import '../dungeon/game_state.dart';
-// import '../dungeon/scenario_library.dart';
-// import 'game_screen.dart';
+import 'pet_screen.dart'; // Ensure path is correct
+import '../petsim/town_service.dart'; // Import the new service
 
 class CharacterCreationScreen extends StatefulWidget {
   const CharacterCreationScreen({super.key});
@@ -18,148 +15,167 @@ class CharacterCreationScreen extends StatefulWidget {
 
 class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
   final TextEditingController _nameController = TextEditingController();
-  Pet? _rolledPet;
+  final TownService _townService = TownService();
 
-  void _rollStats() {
-    // If the name is empty, default to "Hero"
+  Pet? _hatchedPet;
+  bool _isHatching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _townService.loadData(); // Load town upgrades
+  }
+
+  void _hatchEgg() async {
+    setState(() => _isHatching = true);
+
+    // Fake delay for suspense
+    await Future.delayed(const Duration(seconds: 1));
+
     String nameToUse = _nameController.text.trim();
-    if (nameToUse.isEmpty) nameToUse = 'Hero';
+    if (nameToUse.isEmpty) nameToUse = 'Hero Gen ${_townService.currentGeneration}';
+
+    // --- ROGUELITE INHERITANCE LOGIC ---
+    // Base rolls (4-18)
+    final pet = Pet.rollStats(nameToUse);
+
+    // Apply Incubator Bonus (Legacy Upgrade)
+    // Example: Each level adds +1 to all stats
+    int bonus = _townService.incubatorLevel - 1;
+
+    // Apply Generation Bonus (Evolution)
+    // Example: +1 to two random stats per generation
+    int genBonus = _townService.currentGeneration;
 
     setState(() {
-      _rolledPet = Pet.rollStats(nameToUse);
+      pet.strength += bonus;
+      pet.dexterity += bonus;
+      pet.constitution += bonus;
+      pet.intelligence += bonus;
+      pet.wisdom += bonus;
+      pet.charisma += bonus;
+
+      // Heal up the new max HP
+      pet.heal(999);
+
+      _hatchedPet = pet;
+      _isHatching = false;
     });
   }
 
-  Future<void> _startGame() async {
-    if (_rolledPet == null) return;
+  Future<void> _adoptAndStart() async {
+    if (_hatchedPet == null) return;
 
-    // 1. Get the Shared Preferences instance
     final prefs = await SharedPreferences.getInstance();
 
-    // 2. Prepare the data to match what PetScreen expects
     Map<String, dynamic> petData = {
-      'name': _rolledPet!.name,
-      'hp': _rolledPet!.currentHealth,
-      'maxHp': _rolledPet!.maxHealth,
-      'hunger': 0, // New pets start full
-
-      'strength': _rolledPet!.strength,
-      'dexterity': _rolledPet!.dexterity,
-      'constitution': _rolledPet!.constitution,
-      'intelligence': _rolledPet!.intelligence,
-      'wisdom': _rolledPet!.wisdom,
-      'charisma': _rolledPet!.charisma,
+      'name': _hatchedPet!.name,
+      'hp': _hatchedPet!.currentHealth,
+      'maxHp': _hatchedPet!.maxHealth,
+      'hunger': 0,
+      'strength': _hatchedPet!.strength,
+      'dexterity': _hatchedPet!.dexterity,
+      'constitution': _hatchedPet!.constitution,
+      'intelligence': _hatchedPet!.intelligence,
+      'wisdom': _hatchedPet!.wisdom,
+      'charisma': _hatchedPet!.charisma,
+      'generation': _townService.currentGeneration, // Save generation
     };
 
-    // 3. Save the data
     await prefs.setString('pet_save_data', jsonEncode(petData));
-    await prefs.setString('pet_name', _rolledPet!.name);
+    await prefs.setString('pet_name', _hatchedPet!.name);
 
-    // 4. check if the widget is still on screen before navigating
     if (!mounted) return;
-
-    // 5. Go to the Pet Screen (The Hub)
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => const PetScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const PetScreen()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // This ensures the keyboard doesn't hide the current input field
-      resizeToAvoidBottomInset: true,
+      backgroundColor: const Color(0xFF2C3E50),
       appBar: AppBar(
-        title: const Text('Create Your Pet'),
-        backgroundColor: Colors.deepPurple,
+        title: Text('Hatchery (Gen ${_townService.currentGeneration})'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      // 1. SafeArea prevents content from hiding behind notches/status bars
       body: SafeArea(
-        // 2. SingleChildScrollView allows the column to scroll if it gets too tall
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Name Your Pet',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              const Icon(Icons.egg, size: 100, color: Colors.amberAccent),
+              const SizedBox(height: 20),
+              Text(
+                "Incubator Level: ${_townService.incubatorLevel}",
+                style: const TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 30),
+
+              if (_hatchedPet == null) ...[
                 TextField(
                   controller: _nameController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'Enter name...',
-                    hintStyle: const TextStyle(color: Colors.white54),
+                    labelText: 'Name your successor',
+                    labelStyle: const TextStyle(color: Colors.white54),
                     filled: true,
-                    fillColor: Colors.grey[800],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    fillColor: Colors.black26,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _rollStats,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(16),
-                    backgroundColor: Colors.deepPurple,
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: _isHatching ? null : _hatchEgg,
+                    icon: _isHatching
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator())
+                        : const Icon(Icons.flash_on),
+                    label: Text(_isHatching ? "HATCHING..." : "CRACK EGG"),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700]),
                   ),
-                  child: const Text('ROLL STATS', style: TextStyle(fontSize: 18)),
                 ),
-                const SizedBox(height: 30),
-                if (_rolledPet != null) ...[
-                  Card(
-                    // Added a dark color so the white text inside remains visible
-                    color: Colors.grey[900],
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _rolledPet!.name,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white, // Explicitly set text to white
-                            ),
-                          ),
-                          const Divider(height: 20, color: Colors.white24),
-                          _buildStatRow('STR', _rolledPet!.strength),
-                          _buildStatRow('DEX', _rolledPet!.dexterity),
-                          _buildStatRow('CON', _rolledPet!.constitution),
-                          _buildStatRow('INT', _rolledPet!.intelligence),
-                          _buildStatRow('WIS', _rolledPet!.wisdom),
-                          _buildStatRow('CHA', _rolledPet!.charisma),
-                          const Divider(height: 20, color: Colors.white24),
-                          Text(
-                            'HP: ${_rolledPet!.currentHealth}/${_rolledPet!.maxHealth}',
-                            style: const TextStyle(fontSize: 20, color: Colors.white),
-                          ),
-                        ],
+              ] else ...[
+                // PET STAT CARD
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.amberAccent)
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                          _hatchedPet!.name,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)
                       ),
-                    ),
+                      const Divider(color: Colors.white24),
+                      _buildStatRow("STR", _hatchedPet!.strength),
+                      _buildStatRow("DEX", _hatchedPet!.dexterity),
+                      _buildStatRow("CON", _hatchedPet!.constitution),
+                      _buildStatRow("INT", _hatchedPet!.intelligence),
+                      _buildStatRow("WIS", _hatchedPet!.wisdom),
+                      _buildStatRow("CHA", _hatchedPet!.charisma),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _startGame,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                      backgroundColor: Colors.green,
-                    ),
-                    child: const Text('ADOPT PET', style: TextStyle(fontSize: 18)),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _adoptAndStart,
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    child: const Text("BEGIN JOURNEY"),
                   ),
-                  // Add a small spacer at the bottom so the button isn't stuck to the edge when scrolling
-                  const SizedBox(height: 20),
-                ],
-              ],
-            ),
+                ),
+              ]
+            ],
           ),
         ),
       ),
@@ -167,22 +183,13 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
   }
 
   Widget _buildStatRow(String label, int value) {
-    int modifier = ((value - 10) / 2).floor();
-    String modifierStr = modifier >= 0 ? '+$modifier' : '$modifier';
-
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            '$label: $value',
-            style: const TextStyle(fontSize: 18, color: Colors.white), // Added color
-          ),
-          Text(
-            '($modifierStr)',
-            style: const TextStyle(fontSize: 16, color: Colors.white70),
-          ),
+          Text(label, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+          Text(value.toString(), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         ],
       ),
     );

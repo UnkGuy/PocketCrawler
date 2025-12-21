@@ -4,9 +4,37 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="added an icon">
+    <list default="true" id="4ddec096-9851-4e4e-a8d5-eca10d339109" name="Changes" comment="fixed up the final stats screen">
+      <change afterPath="$PROJECT_DIR$/pocketcrawler/assets/data/scenarios.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario_loader.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pocketcrawler/lib/petsim/pet_game_manager.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pocketcrawler/lib/petsim/town_service.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pocketcrawler/lib/widgets/pet_action_bar.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pocketcrawler/lib/widgets/pet_display_area.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pocketcrawler/lib/widgets/pet_stat_grid.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pocketcrawler/lib/widgets/town_build_sheet.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/assets/charisma.png" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/assets/stats/charisma.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/assets/constitution.png" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/assets/stats/constitution.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/assets/dexterity.png" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/assets/stats/dexterity.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/assets/hp.png" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/assets/stats/hp.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/assets/intelligence.png" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/assets/stats/intelligence.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/assets/strength.png" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/assets/stats/strength.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/assets/wisdom.png" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/assets/stats/wisdom.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/item.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/item.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/dungeon/scenario_library.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/hover_icon.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/widgets/hover_icon.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/image_bubble.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/widgets/image_bubble.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/pet.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/pet.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/petsim/pet_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/screens/pet_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/screens/character_creation_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/screens/character_creation_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_over_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_over_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/lib/screens/game_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pocketcrawler/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +69,7 @@
   }
 }</component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
@@ -62,6 +90,7 @@
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
+    "com.google.services.firebase.aqiPopupShown": "true",
     "dart.analysis.tool.window.visible": "false",
     "git-widget-placeholder": "master",
     "io.flutter.reload.alreadyRun": "true",
@@ -73,6 +102,11 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/pocketcrawler/assets/icon" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/pocketcrawler/lib/screens" />
+      <recent name="$PROJECT_DIR$/pocketcrawler/lib/widgets" />
+      <recent name="$PROJECT_DIR$/pocketcrawler/assets/stats" />
     </key>
   </component>
   <component name="RunManager">
@@ -135,7 +169,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765534733466</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="fixed up the final stats screen">
+      <option name="closed" value="true" />
+      <created>1765543789303</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1765543789303</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -154,6 +196,7 @@
     <MESSAGE value="Worked on some very minimal UI for the dungeon part and updated main and scenario" />
     <MESSAGE value="Basically done as a beta" />
     <MESSAGE value="added an icon" />
-    <option name="LAST_COMMIT_MESSAGE" value="added an icon" />
+    <MESSAGE value="fixed up the final stats screen" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed up the final stats screen" />
   </component>
 </project>

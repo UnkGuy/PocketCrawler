@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-import 'dungeon/scenario.dart';
+import '../dungeon/scenario.dart';
 
 class DraggableBubble extends StatefulWidget {
   final Widget child;

@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import '../pet.dart';
+import 'scenario.dart';
 
 /// Represents a consumable item that can be used during a dungeon run
 class Item {
@@ -71,6 +73,12 @@ class Item {
       case ItemType.curse:
         _applyStatusEffect(pet, messages);
         break;
+
+    // NEW: Handle resources safely if player clicks them
+      case ItemType.resource:
+        messages.add('This is a valuable resource.');
+        messages.add('Return to the Sanctuary to claim it!');
+        return ItemUseResult(success: false, messages: messages, item: this);
     }
 
     return ItemUseResult(
@@ -128,6 +136,7 @@ class Item {
     pet.addStatusEffect(StatusEffect(
       name: name,
       type: effectType,
+      color: type == ItemType.blessing ? Colors.amber : Colors.purple,
       duration: duration,
       description: description,
       statModifiers: statModifiers,
@@ -147,12 +156,13 @@ class Item {
 
 /// Types of items
 enum ItemType {
-  statBoost, // Increases one or more stats
-  healthPotion, // Restores health
-  statSwapper, // Swaps two stats
-  oracle, // Reveals success chances
-  blessing, // Beneficial status effect
-  curse, // Negative status effect
+  statBoost,
+  healthPotion,
+  statSwapper,
+  oracle,
+  blessing,
+  curse,
+  resource, // <--- NEW TYPE ADDED HERE
 }
 
 /// Rarity of items (affects drop rate)
@@ -166,7 +176,6 @@ enum ItemRarity {
 // ITEM USE RESULT
 // ==============================================================================
 
-/// Result of using an item
 class ItemUseResult {
   final bool success;
   final List<String> messages;
@@ -180,10 +189,9 @@ class ItemUseResult {
 }
 
 // ==============================================================================
-// ACTIVE ITEM EFFECT (For duration-based items)
+// ACTIVE ITEM EFFECT
 // ==============================================================================
 
-/// Tracks active temporary item effects in GameState
 class ActiveItemEffect {
   final Item item;
   int remainingDuration;
@@ -193,17 +201,13 @@ class ActiveItemEffect {
     required this.remainingDuration,
   });
 
-  /// Decrement the duration
   void tick() {
     remainingDuration--;
   }
 
-  /// Check if the effect has expired
   bool get isExpired => remainingDuration <= 0;
 
-  /// Revert temporary effects when item expires
   void onExpire(Pet pet) {
-    // Only statBoost items with duration modify tempStatModifiers
     if (item.type == ItemType.statBoost &&
         item.duration > 0 &&
         item.statModifiers != null) {
@@ -221,9 +225,32 @@ class ActiveItemEffect {
 // ITEM LIBRARY
 // ==============================================================================
 
-/// Predefined items library
 class ItemLibrary {
   static const Map<String, Item> _items = {
+
+    // --- NEW: TRADE GOODS (PROXY ITEMS) ---
+    'pouch_of_gold': Item(
+      id: 'pouch_of_gold',
+      name: 'Pouch of Gold',
+      description: 'A heavy pouch. Worth 50 Gold at the Sanctuary.',
+      type: ItemType.resource,
+      rarity: ItemRarity.common,
+    ),
+    'bundle_of_wood': Item(
+      id: 'bundle_of_wood',
+      name: 'Bundle of Wood',
+      description: 'Building material. Worth 10 Wood.',
+      type: ItemType.resource,
+      rarity: ItemRarity.common,
+    ),
+    'heap_of_stone': Item(
+      id: 'heap_of_stone',
+      name: 'Heap of Stone',
+      description: 'Solid rock. Worth 5 Stone.',
+      type: ItemType.resource,
+      rarity: ItemRarity.uncommon,
+    ),
+
     // --- HEALTH POTIONS ---
     'minor_healing': Item(
       id: 'minor_healing',

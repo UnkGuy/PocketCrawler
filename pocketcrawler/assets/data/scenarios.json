@@ -1,0 +1,507 @@
+[
+  {
+    "id": "goblin_merchant_01",
+    "title": "Goblin Merchant",
+    "description": "A hunched goblin with a cart full of strange wares blocks your path. His beady eyes gleam as he notices you. \"Toll! Toll to pass!\" he squeaks.",
+    "rarity": "common",
+    "choices": [
+      {
+        "text": "Intimidate him into letting you pass [STR]",
+        "statRequired": "strength",
+        "difficultyClass": 12,
+        "successOutcome": {
+          "description": "You flex menacingly. The goblin whimpers and scurries aside.",
+          "effects": [
+            { "type": "statChange", "statName": "strength", "amount": 2 },
+            { "type": "statChange", "statName": "charisma", "amount": -1 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "The goblin laughs at your attempt. He demands payment in blood!",
+          "effects": [
+            { "type": "healthChange", "amount": -2 },
+            { "type": "statChange", "statName": "strength", "amount": -1 }
+          ]
+        }
+      },
+      {
+        "text": "Bargain for safe passage [CHA]",
+        "statRequired": "charisma",
+        "difficultyClass": 10,
+        "successOutcome": {
+          "description": "You sweet-talk the merchant. He grins and tosses you a potion as you pass.",
+          "effects": [
+            { "type": "giveItem", "itemId": "minor_healing" },
+            { "type": "statChange", "statName": "charisma", "amount": 2 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "The goblin sees through your charm and picks your pocket!",
+          "effects": [
+            { "type": "statChange", "statName": "charisma", "amount": -2 },
+            { "type": "statChange", "statName": "dexterity", "amount": -1 }
+          ]
+        }
+      },
+      {
+        "text": "Sneak past while he's distracted [DEX]",
+        "statRequired": "dexterity",
+        "difficultyClass": 13,
+        "successOutcome": {
+          "description": "You slip by unnoticed, even snagging a trinket from his cart!",
+          "effects": [
+            { "type": "statChange", "statName": "dexterity", "amount": 2 },
+            { "type": "giveItem", "itemId": "lucky_charm" }
+          ]
+        },
+        "failureOutcome": {
+          "description": "You trip over a loose stone! The goblin clubs you.",
+          "effects": [
+            { "type": "healthChange", "amount": -3 },
+            { "type": "statChange", "statName": "dexterity", "amount": -2 }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ancient_statue_01",
+    "title": "Ancient Statue",
+    "description": "A weathered stone statue depicts a robed figure with arms outstretched. Runes glow faintly on its base, and you sense latent magic.",
+    "rarity": "common",
+    "choices": [
+      {
+        "text": "Decipher the runes [INT]",
+        "statRequired": "intelligence",
+        "difficultyClass": 14,
+        "successOutcome": {
+          "description": "The runes reveal an ancient blessing! Knowledge floods your mind.",
+          "effects": [
+            { "type": "statChange", "statName": "intelligence", "amount": 3 },
+            { "type": "statChange", "statName": "wisdom", "amount": 1 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "The runes burn your mind with incomprehensible visions.",
+          "effects": [
+            { "type": "statChange", "statName": "intelligence", "amount": -2 },
+            { "type": "healthChange", "amount": -1 }
+          ]
+        }
+      },
+      {
+        "text": "Pray at the statue [WIS]",
+        "statRequired": "wisdom",
+        "difficultyClass": 11,
+        "successOutcome": {
+          "description": "A warm light envelops you. You feel rejuvenated and wiser.",
+          "effects": [
+            { "type": "healthChange", "amount": 3 },
+            { "type": "statChange", "statName": "wisdom", "amount": 2 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "Your prayer echoes unanswered. You feel foolish.",
+          "effects": [
+            { "type": "statChange", "statName": "wisdom", "amount": -1 },
+            { "type": "statChange", "statName": "charisma", "amount": -1 }
+          ]
+        }
+      },
+      {
+        "text": "Smash the statue for treasure [STR]",
+        "statRequired": "strength",
+        "difficultyClass": 15,
+        "successOutcome": {
+          "description": "The statue crumbles, revealing a hidden cache of potions!",
+          "effects": [
+            { "type": "giveItem", "itemId": "healing_potion" },
+            { "type": "statChange", "statName": "strength", "amount": 1 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "The statue releases a curse as it cracks! You feel weakened.",
+          "effects": [
+            { "type": "statChange", "statName": "strength", "amount": -3 },
+            {
+              "type": "statusEffect",
+              "statusEffect": {
+                "name": "Statue's Curse",
+                "type": "cursed",
+                "color": 4285384277,
+                "duration": 3,
+                "description": "Strength checks have disadvantage",
+                "canStack": false
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "mysterious_chest_01",
+    "title": "Mysterious Chest",
+    "description": "An ornate chest sits in the middle of the room, practically glowing with possibility. No traps are visible, but something feels... off.",
+    "rarity": "uncommon",
+    "choices": [
+      {
+        "text": "Carefully inspect for traps [WIS]",
+        "statRequired": "wisdom",
+        "difficultyClass": 15,
+        "successOutcome": {
+          "description": "You spot a needle trap and disarm it! The chest contains rare elixirs.",
+          "effects": [
+            { "type": "giveItem", "itemId": "elixir_of_strength" },
+            { "type": "giveItem", "itemId": "draught_of_intellect" },
+            { "type": "statChange", "statName": "wisdom", "amount": 2 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "You miss the trap entirely. Poisoned darts strike you!",
+          "effects": [
+            { "type": "healthChange", "amount": -4 },
+            {
+              "type": "statusEffect",
+              "statusEffect": {
+                "name": "Poisoned",
+                "color": 4288460516,
+                "type": "statPenalty",
+                "duration": 5,
+                "description": "All stats reduced by 1",
+                "statModifiers": {
+                  "strength": -1,
+                  "dexterity": -1,
+                  "constitution": -1,
+                  "intelligence": -1,
+                  "wisdom": -1,
+                  "charisma": -1
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "text": "Force it open immediately [STR]",
+        "statRequired": "strength",
+        "difficultyClass": 16,
+        "successOutcome": {
+          "description": "You rip the chest open before any traps can trigger! Treasure!",
+          "effects": [
+            { "type": "giveItem", "itemId": "greater_healing" },
+            { "type": "statChange", "statName": "strength", "amount": 3 },
+            { "type": "skipFloors", "amount": 3 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "The chest explodes in your face!",
+          "effects": [
+            { "type": "healthChange", "amount": -5 },
+            { "type": "statChange", "statName": "strength", "amount": -2 },
+            { "type": "statChange", "statName": "dexterity", "amount": -1 }
+          ]
+        }
+      },
+      {
+        "text": "Pick the lock deftly [DEX]",
+        "statRequired": "dexterity",
+        "difficultyClass": 14,
+        "successOutcome": {
+          "description": "Click! The lock opens smoothly. Inside: valuable items and a map showing a shortcut!",
+          "effects": [
+            { "type": "giveItem", "itemId": "crystal_ball" },
+            { "type": "statChange", "statName": "dexterity", "amount": 3 },
+            { "type": "skipFloors", "amount": 2 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "Your lock pick breaks, triggering a magic seal that drains you.",
+          "effects": [
+            { "type": "statChange", "statName": "dexterity", "amount": -3 },
+            { "type": "healthChange", "amount": -2 }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "crumbling_bridge_01",
+    "title": "Crumbling Bridge",
+    "description": "A rope bridge stretches over a bottomless chasm. Several planks are missing, and the whole structure sways ominously in the wind.",
+    "rarity": "uncommon",
+    "choices": [
+      {
+        "text": "Sprint across before it collapses [DEX]",
+        "statRequired": "dexterity",
+        "difficultyClass": 16,
+        "successOutcome": {
+          "description": "You dart across with incredible agility! Your confidence soars.",
+          "effects": [
+            { "type": "statChange", "statName": "dexterity", "amount": 3 },
+            { "type": "statChange", "statName": "wisdom", "amount": 1 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "Your foot breaks through a plank! You barely grab the rope, bruised and shaken.",
+          "effects": [
+            { "type": "healthChange", "amount": -4 },
+            { "type": "statChange", "statName": "dexterity", "amount": -2 },
+            { "type": "loseFloors", "amount": 2 }
+          ]
+        }
+      },
+      {
+        "text": "Study the bridge pattern and cross methodically [INT]",
+        "statRequired": "intelligence",
+        "difficultyClass": 15,
+        "successOutcome": {
+          "description": "You identify the safe planks and cross easily. You notice a hidden cache mid-way!",
+          "effects": [
+            { "type": "statChange", "statName": "intelligence", "amount": 2 },
+            { "type": "giveItem", "itemId": "potion_of_agility" }
+          ]
+        },
+        "failureOutcome": {
+          "description": "Your calculations are wrong. You take a tumble.",
+          "effects": [
+            { "type": "healthChange", "amount": -3 },
+            { "type": "statChange", "statName": "intelligence", "amount": -2 }
+          ]
+        }
+      },
+      {
+        "text": "Test each plank carefully [WIS]",
+        "statRequired": "wisdom",
+        "difficultyClass": 13,
+        "successOutcome": {
+          "description": "Patience pays off. You cross safely and feel more centered.",
+          "effects": [
+            { "type": "statChange", "statName": "wisdom", "amount": 2 },
+            { "type": "healthChange", "amount": 2 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "Your caution makes you second-guess. You freeze mid-bridge as it sways wildly!",
+          "effects": [
+            { "type": "statChange", "statName": "wisdom", "amount": -1 },
+            {
+              "type": "statusEffect",
+              "statusEffect": {
+                "name": "Shaken",
+                "type": "disadvantage",
+                "color": 4280361249,
+                "duration": 2,
+                "description": "Disadvantage on next 2 checks"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "mushroom_circle_01",
+    "title": "Strange Mushroom Circle",
+    "description": "A perfect ring of glowing mushrooms surrounds a flat stone. The air shimmers with fey magic. This is a place of power... and danger.",
+    "rarity": "rare",
+    "choices": [
+      {
+        "text": "Step into the circle and meditate [WIS]",
+        "statRequired": "wisdom",
+        "difficultyClass": 18,
+        "successOutcome": {
+          "description": "You commune with ancient spirits! They grant you their blessing and skip you forward!",
+          "effects": [
+            { "type": "statChange", "statName": "wisdom", "amount": 4 },
+            {
+              "type": "statusEffect",
+              "statusEffect": {
+                "name": "Fey Blessing",
+                "color": 4294442952,
+                "type": "blessed",
+                "duration": 10,
+                "description": "Advantage on Wisdom checks"
+              }
+            },
+            { "type": "skipFloors", "amount": 5 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "Hostile fey spirits assault your mind! You stumble backward, mind fractured.",
+          "effects": [
+            { "type": "healthChange", "amount": -6 },
+            { "type": "statChange", "statName": "wisdom", "amount": -3 },
+            { "type": "statChange", "statName": "intelligence", "amount": -2 },
+            { "type": "loseFloors", "amount": 3 }
+          ]
+        }
+      },
+      {
+        "text": "Consume one of the mushrooms [CON]",
+        "statRequired": "constitution",
+        "difficultyClass": 17,
+        "successOutcome": {
+          "description": "The mushroom grants you visions of power! Your body transforms, becoming stronger!",
+          "effects": [
+            { "type": "maxHealthChange", "amount": 3 },
+            { "type": "statChange", "statName": "constitution", "amount": 3 },
+            {
+              "type": "statusEffect",
+              "statusEffect": {
+                "name": "Mushroom Enhancement",
+                "color": 4287758303,
+                "type": "statBoost",
+                "duration": 8,
+                "description": "+2 to all stats",
+                "statModifiers": {
+                  "strength": 2,
+                  "dexterity": 2,
+                  "intelligence": 2,
+                  "wisdom": 2,
+                  "charisma": 2
+                }
+              }
+            }
+          ]
+        },
+        "failureOutcome": {
+          "description": "The mushroom is violently poisonous! Your body convulses.",
+          "effects": [
+            { "type": "healthChange", "amount": -8 },
+            { "type": "maxHealthChange", "amount": -2 },
+            {
+              "type": "statusEffect",
+              "statusEffect": {
+                "name": "Severe Poisoning",
+                "type": "cursed",
+                "color": 4285043528,
+                "duration": 10,
+                "description": "All stats reduced by 2",
+                "statModifiers": {
+                  "strength": -2,
+                  "dexterity": -2,
+                  "constitution": -2,
+                  "intelligence": -2,
+                  "wisdom": -2,
+                  "charisma": -2
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "text": "Use magic to harness the circle's power [INT]",
+        "statRequired": "intelligence",
+        "difficultyClass": 19,
+        "successOutcome": {
+          "description": "You channel the fey magic perfectly! Reality bends to your will!",
+          "effects": [
+            { "type": "statChange", "statName": "intelligence", "amount": 5 },
+            { "type": "giveItem", "itemId": "divine_favor" },
+            { "type": "swapStats", "statName": "strength", "secondStatName": "intelligence" },
+            { "type": "skipFloors", "amount": 7 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "The magic backfires catastrophically! You're hurled back through the dungeon!",
+          "effects": [
+            { "type": "healthChange", "amount": -5 },
+            { "type": "statChange", "statName": "intelligence", "amount": -4 },
+            { "type": "loseFloors", "amount": 5 }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "wandering_bard_01",
+    "title": "The Wandering Bard",
+    "description": "A cheerful bard sits on a rock, strumming a lute. \"Ah, a fellow traveler! Care for a game of riddles? I promise the stakes are... interesting.\"",
+    "rarity": "rare",
+    "choices": [
+      {
+        "text": "Accept his riddle challenge [INT]",
+        "statRequired": "intelligence",
+        "difficultyClass": 17,
+        "successOutcome": {
+          "description": "You solve every riddle flawlessly! The bard applauds and grants you a magical mirror.",
+          "effects": [
+            { "type": "statChange", "statName": "intelligence", "amount": 4 },
+            { "type": "giveItem", "itemId": "mirror_of_reversal" },
+            { "type": "giveItem", "itemId": "tome_of_balance" }
+          ]
+        },
+        "failureOutcome": {
+          "description": "You fail the riddles. The bard laughs and casts a befuddlement spell!",
+          "effects": [
+            { "type": "statChange", "statName": "intelligence", "amount": -3 },
+            { "type": "swapStats", "statName": "wisdom", "secondStatName": "charisma" }
+          ]
+        }
+      },
+      {
+        "text": "Challenge him to a performance duel [CHA]",
+        "statRequired": "charisma",
+        "difficultyClass": 18,
+        "successOutcome": {
+          "description": "Your performance brings tears to the bard's eyes! He declares you the winner and teleports you forward!",
+          "effects": [
+            { "type": "statChange", "statName": "charisma", "amount": 5 },
+            {
+              "type": "statusEffect",
+              "statusEffect": {
+                "color": 4294618148,
+                "name": "Bardic Inspiration",
+                "type": "advantage",
+                "duration": 8,
+                "description": "Advantage on Charisma checks"
+              }
+            },
+            { "type": "skipFloors", "amount": 6 }
+          ]
+        },
+        "failureOutcome": {
+          "description": "You embarrass yourself completely. The bard's mockery echoes through the dungeon.",
+          "effects": [
+            { "type": "statChange", "statName": "charisma", "amount": -4 },
+            { "type": "statChange", "statName": "wisdom", "amount": -2 }
+          ]
+        }
+      },
+      {
+        "text": "Rob him while he's distracted [DEX]",
+        "statRequired": "dexterity",
+        "difficultyClass": 20,
+        "successOutcome": {
+          "description": "You steal his entire bag of magical items without him noticing!",
+          "effects": [
+            { "type": "statChange", "statName": "dexterity", "amount": 3 },
+            { "type": "giveItem", "itemId": "lucky_charm" },
+            { "type": "giveItem", "itemId": "crystal_ball" },
+            { "type": "giveItem", "itemId": "greater_healing" }
+          ]
+        },
+        "failureOutcome": {
+          "description": "He catches you red-handed! The bard curses you and sends you tumbling backward!",
+          "effects": [
+            { "type": "statChange", "statName": "dexterity", "amount": -3 },
+            { "type": "statChange", "statName": "charisma", "amount": -3 },
+            { "type": "loseFloors", "amount": 4 },
+            {
+              "type": "statusEffect",
+              "statusEffect": {
+                "name": "Bard's Curse",
+                "color": 4293656639,
+                "type": "disadvantage",
+                "duration": 7,
+                "description": "Disadvantage on all checks"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+]
