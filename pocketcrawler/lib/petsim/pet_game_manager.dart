@@ -12,7 +12,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../pet.dart';
 import '../../dungeon/game_state.dart';
-import '../screens/game_screen.dart'; // Adjust import path if needed
+import '../../dungeon/item.dart';
+import '../screens/game_screen.dart';
+import '../screens/character_creation_screen.dart';
 import '../../petsim/town_service.dart';
 
 class PetGameManager extends ChangeNotifier {
@@ -43,16 +45,9 @@ class PetGameManager extends ChangeNotifier {
   // ========================================================================
 
   Future<void> initialize() async {
-    // 1. Load Town Data
     await townService.loadData();
-
-    // 2. Load Images
     await _loadCustomImage();
-
-    // 3. Load or Create Pet
     await _loadPetStats();
-
-    // 4. Setup Game
     _generateDirt();
     _startHungerTimer();
 
@@ -60,6 +55,7 @@ class PetGameManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   void dispose() {
     _hungerTimer?.cancel();
     _cooldownTimer?.cancel();
@@ -71,7 +67,7 @@ class PetGameManager extends ChangeNotifier {
   // ========================================================================
 
   void selectTool(String tool) {
-    if (tool == 'hand' && secondsRemaining > 0) return; // Cooldown check
+    if (tool == 'hand' && secondsRemaining > 0) return;
     selectedTool = (selectedTool == tool ? 'hand' : tool);
     notifyListeners();
   }
@@ -131,79 +127,54 @@ class PetGameManager extends ChangeNotifier {
     }
   }
 
+  // Helper to force save (Used by Shop Sheet)
+  void forceSave() {
+    _savePetStats();
+    notifyListeners();
+  }
+
   // ========================================================================
   // DUNGEON LOGIC
   // ========================================================================
 
-  void goToDungeon(BuildContext context) async {
-    // 1. Prepare
-    final gameState = GameState(pet: myPet, maxFloor: 100);
-    _hungerTimer?.cancel();
-
-    // 2. Navigate
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => GameScreen(gameState: gameState)),
-    );
-
-    // 3. Return Logic
-    if (!myPet.isAlive) {
-      _handleDeath(gameState.currentFloor, context);
-    } else {
-      _handleSurvival(gameState.currentFloor, context);
-    }
-  }
-
-  void _handleSurvival(int floorsCleared, BuildContext context) {
-    // Calculate Loot (Method 1: Depth = Wealth)
-    int goldEarned = floorsCleared * 10;
-    int woodEarned = (floorsCleared / 2).floor();
-    int stoneEarned = (floorsCleared / 5).floor();
-
-    townService.addResources(goldEarned, woodEarned, stoneEarned);
-
-    _startHungerTimer();
-    _savePetStats();
-    notifyListeners();
-
+  void goToDungeon(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF2C3E50),
-        title: const Text("Expedition Successful", style: TextStyle(color: Colors.greenAccent)),
-        content: Text("Returned with:\n+$goldEarned Gold\n+$woodEarned Wood", style: const TextStyle(color: Colors.white)),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Nice"))],
-      ),
-    );
-  }
-
-  void _handleDeath(int floorsCleared, BuildContext context) {
-    int goldSalvaged = (floorsCleared * 5);
-    townService.addResources(goldSalvaged, 0, 0);
-    townService.currentGeneration++;
-    townService.saveData();
-
-    SharedPreferences.getInstance().then((prefs) => prefs.remove('pet_save_data'));
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.red[900],
-        title: const Text("Fallen Hero", style: TextStyle(color: Colors.white)),
-        content: Text(
-          "${myPet.name} has fallen.\nGold salvaged: $goldSalvaged.\nLegacy continues in Gen ${townService.currentGeneration}.",
-          style: const TextStyle(color: Colors.white70),
+        title: const Text("Enter Dungeon?", style: TextStyle(color: Colors.redAccent)),
+        content: const Text(
+          "There is no turning back.\n\nYour pet will not return until they Conquer Floor 100 or Perish.",
+          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
-            child: const Text("Return to Hatchery", style: TextStyle(color: Colors.white)),
+            child: const Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton.icon(
+            // FIXED: Used Icons.dangerous instead of the non-existent Icons.skull
+            icon: const Icon(Icons.dangerous),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red[900]),
+            label: const Text("ENTER", style: TextStyle(color: Colors.white)),
             onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              Navigator.pop(context);
+              _launchDungeon(context);
             },
           )
         ],
       ),
+    );
+  }
+
+  void _launchDungeon(BuildContext context) {
+    final gameState = GameState(pet: myPet, maxFloor: 100);
+    _hungerTimer?.cancel();
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => GameScreen(gameState: gameState)),
+          (route) => false,
     );
   }
 
@@ -264,7 +235,7 @@ class PetGameManager extends ChangeNotifier {
 
     if (jsonString != null) {
       Map<String, dynamic> petData = jsonDecode(jsonString);
-      myPet = Pet.rollStats(petData['name']); // Temp init
+      myPet = Pet.rollStats(petData['name']);
       myPet.currentHealth = petData['hp'];
       myPet.maxHealth = petData['maxHp'];
       myPet.generation = petData['generation'] ?? 1;

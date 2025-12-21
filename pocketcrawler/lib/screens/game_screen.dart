@@ -9,11 +9,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../dungeon/game_state.dart';
 import '../dungeon/scenario.dart';
-// CHANGE 1: Import the Loader, not the Library
 import '../dungeon/scenario_loader.dart';
 import '../widgets/image_bubble.dart';
 import '../pet.dart';
 import 'game_over_screen.dart';
+import 'victory_screen.dart'; // Ensure this file exists
 import '../widgets/hover_icon.dart';
 
 class GameScreen extends StatefulWidget {
@@ -26,7 +26,6 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-
   final PetController myPetController = PetController();
   File? mobileImage;
   Uint8List? webImage;
@@ -71,19 +70,25 @@ class _GameScreenState extends State<GameScreen> {
     _loadCustomImage();
   }
 
-  // CHANGE 2: Made this method async to wait for JSON loading
   Future<void> _loadNextScenario() async {
-    if (widget.gameState.isRunComplete) {
+    // 1. VICTORY CHECK
+    if (widget.gameState.isDungeonCleared) {
+      _showVictory();
+      return;
+    }
+
+    // 2. DEATH CHECK
+    if (widget.gameState.isPetDead) {
       _showGameOver();
       return;
     }
 
-    // Load the list from JSON
+    // 3. LOAD SCENARIO
     List<Scenario> scenarios = await ScenarioLoader.loadScenarios();
 
-    // Safety check: ensure we actually loaded scenarios
+    // Safety check
     if (scenarios.isEmpty) {
-      print("ERROR: No scenarios loaded from JSON!");
+      print("ERROR: No scenarios loaded!");
       return;
     }
 
@@ -138,6 +143,7 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
 
+    // Re-check death after choice outcome (e.g., trap damage)
     if (widget.gameState.isPetDead) {
       _showGameOver();
       return;
@@ -153,6 +159,18 @@ class _GameScreenState extends State<GameScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => GameOverScreen(
+          summary: widget.gameState.getSummary(),
+          pet: widget.gameState.pet,
+        ),
+      ),
+    );
+  }
+
+  void _showVictory() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VictoryScreen(
           summary: widget.gameState.getSummary(),
           pet: widget.gameState.pet,
         ),
@@ -188,35 +206,79 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {});
   }
 
+  void _confirmGiveUp() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text("Give Up?", style: TextStyle(color: Colors.redAccent)),
+        content: const Text(
+          "Retiring here means death. You will lose this pet forever.",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showGameOver(); // Trigger death logic
+            },
+            child: const Text("Accept Fate", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scenario = widget.gameState.currentScenario;
 
-    // While waiting for JSON to load, this loading spinner will show
     if (scenario == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    return Scaffold(
+    // 1. LOCK THE BACK BUTTON
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("There is no escape from the dungeon!")),
+        );
+      },
+      child: Scaffold(
         appBar: AppBar(
           title: Text('Floor ${widget.gameState.currentFloor}'),
           backgroundColor: Colors.deepPurple,
-          automaticallyImplyLeading: false,
+          automaticallyImplyLeading: false, // Hides back arrow
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.flag),
+              tooltip: "Give Up",
+              onPressed: _confirmGiveUp,
+            )
+          ],
         ),
         body: Stack(
           children: [
+            // BACKGROUND IMAGE
             Container(
               decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage("assets/backgrounds/Dungeon${min(3, (widget.gameState.currentFloor/20).ceil())}.gif"),
+                    image: AssetImage(
+                        "assets/backgrounds/Dungeon${min(3, (widget.gameState.currentFloor / 20).ceil())}.gif"),
                     filterQuality: FilterQuality.none,
                     fit: BoxFit.cover,
-                  )
-              ),
+                  )),
               child: Column(
                 children: [
+                  // SCENARIO TEXT AREA
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(16),
@@ -249,6 +311,8 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                     ),
                   ),
+
+                  // STATS & INVENTORY CARD
                   Card(
                     margin: const EdgeInsets.all(8),
                     child: Padding(
@@ -270,7 +334,8 @@ class _GameScreenState extends State<GameScreen> {
                                 'HP: ${widget.gameState.pet.currentHealth}/${widget.gameState.pet.maxHealth}',
                                 style: TextStyle(
                                   fontSize: 20,
-                                  color: widget.gameState.pet.currentHealth <= widget.gameState.pet.maxHealth / 3
+                                  color: widget.gameState.pet.currentHealth <=
+                                      widget.gameState.pet.maxHealth / 3
                                       ? Colors.red
                                       : Colors.green,
                                   fontWeight: FontWeight.bold,
@@ -290,9 +355,12 @@ class _GameScreenState extends State<GameScreen> {
                               _statChip('CHA', widget.gameState.pet.getTotalStat('charisma')),
                             ],
                           ),
+
+                          // INVENTORY DISPLAY
                           if (widget.gameState.inventory.isNotEmpty) ...[
                             const Divider(height: 16),
-                            const Text('Inventory:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Inventory (Max 5):',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
                             Wrap(
                               spacing: 8,
@@ -304,19 +372,24 @@ class _GameScreenState extends State<GameScreen> {
                                   tooltipContent: Column(
                                     children: [
                                       Container(
-                                        width:50,
-                                        height:50,
+                                        width: 50,
+                                        height: 50,
                                         decoration: BoxDecoration(
                                           image: DecorationImage(
-                                              image: AssetImage("assets/items/${widget.gameState.inventory[index].id}.png"),
-                                              filterQuality: FilterQuality.none
-                                          ),
+                                              image: AssetImage(
+                                                  "assets/items/${widget.gameState.inventory[index].id}.png"),
+                                              filterQuality: FilterQuality.none),
                                         ),
                                       ),
-                                      Text("${widget.gameState.inventory[index].name}",style: TextStyle(color: Colors.grey[100]),),
-                                      const SizedBox(height: 10,),
-                                      Text("${widget.gameState.inventory[index].description}",style: const TextStyle(color: Colors.grey),),
-
+                                      Text(
+                                        widget.gameState.inventory[index].name,
+                                        style: TextStyle(color: Colors.grey[100]),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        widget.gameState.inventory[index].description,
+                                        style: const TextStyle(color: Colors.grey),
+                                      ),
                                     ],
                                   ),
                                   child: ActionChip(
@@ -328,28 +401,36 @@ class _GameScreenState extends State<GameScreen> {
                               ),
                             ),
                           ],
+
+                          // STATUS EFFECTS DISPLAY
                           if (widget.gameState.pet.activeEffects.isNotEmpty) ...[
                             const Divider(height: 16),
-                            const Text('Status Effects:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Status Effects:',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
                             Wrap(
                               spacing: 8,
-                              children:
-                              List.generate(
+                              children: List.generate(
                                 widget.gameState.pet.activeEffects.length,
                                     (index) => SmartHoverTooltip(
                                   triggerOnLongPress: true,
                                   backgroundColor: const Color.fromRGBO(41, 41, 41, 1.0),
                                   tooltipContent: Column(
                                     children: [
-                                      Text("Duration: ${widget.gameState.pet.activeEffects[index].duration}",style: TextStyle(color: Colors.grey[100]),),
-                                      const SizedBox(height: 10,),
-                                      Text(widget.gameState.pet.activeEffects[index].description,style: const TextStyle(color: Colors.grey),),
+                                      Text(
+                                        "Duration: ${widget.gameState.pet.activeEffects[index].duration}",
+                                        style: TextStyle(color: Colors.grey[100]),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        widget.gameState.pet.activeEffects[index].description,
+                                        style: const TextStyle(color: Colors.grey),
+                                      ),
                                     ],
                                   ),
                                   child: ActionChip(
                                     label: Text(widget.gameState.pet.activeEffects[index].name),
-                                    onPressed: () => (){},
+                                    onPressed: () {},
                                     backgroundColor: Colors.deepPurple[700],
                                   ),
                                 ),
@@ -363,6 +444,8 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
             ),
+
+            // PET IMAGE BUBBLE
             DraggableBubble(
               controller: myPetController,
               initialPosition: const Offset(250, 500),
@@ -376,7 +459,8 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ],
-        )
+        ),
+      ),
     );
   }
 
@@ -385,9 +469,9 @@ class _GameScreenState extends State<GameScreen> {
     String modStr = modifier >= 0 ? '+$modifier' : '$modifier';
     return Column(
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.white70)),
-        Text('$value', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        Text(modStr, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+        Text(label, style: const TextStyle(fontSize: 10, color: Colors.white70)),
+        Text('$value', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(modStr, style: const TextStyle(fontSize: 10, color: Colors.white70)),
       ],
     );
   }

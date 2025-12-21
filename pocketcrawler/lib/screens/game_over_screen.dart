@@ -1,12 +1,12 @@
-import 'dart:convert'; // For jsonEncode
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // For saving data
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../dungeon/game_state.dart';
-import 'pet_screen.dart'; // Import PetScreen
-import '../pet.dart'; // Import Pet class
+import '../pet.dart';
+import '../petsim/town_service.dart'; // Import TownService
+import 'character_creation_screen.dart'; // Import Hatchery
 
-class GameOverScreen extends StatefulWidget {
+class GameOverScreen extends StatelessWidget {
   final RunSummary summary;
   final Pet pet;
 
@@ -16,137 +16,94 @@ class GameOverScreen extends StatefulWidget {
     required this.pet,
   });
 
-  @override
-  State<GameOverScreen> createState() => _GameOverScreenState();
-}
+  Future<void> _processLegacyAndRestart(BuildContext context) async {
+    // 1. Initialize Town Service to save loot
+    final townService = TownService();
+    await townService.loadData();
 
-class _GameOverScreenState extends State<GameOverScreen> {
+    // 2. Calculate "Inheritance" (Loot salvaged from death)
+    // Example: You keep 50% of Gold earned, 0% of materials
+    // We can calculate this from the summary stats
+    int goldSalvaged = (summary.floorsReached * 5);
 
-  Future<void> _returnToPetSim() async {
+    townService.addResources(goldSalvaged, 0, 0);
+    townService.currentGeneration++; // Increment Generation
+    await townService.saveData();
+
+    // 3. Wipe the current Pet Save (Permadeath)
     final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('pet_save_data');
 
-    // 1. Get previous hunger
-    int preservedHunger = 50;
-    String? oldSave = prefs.getString('pet_save_data');
-    if (oldSave != null) {
-      final oldData = jsonDecode(oldSave);
-      preservedHunger = oldData['hunger'] ?? 50;
+    if (!context.mounted) return;
 
-      // Adventurer's Appetite: make them hungry after a run
-      preservedHunger += 20;
-      if (preservedHunger > 100) preservedHunger = 100;
-    }
-
-    // 2. Create the new save data using the MODIFIED pet from the dungeon
-    Map<String, dynamic> updatedData = {
-      'name': widget.pet.name,
-      'hp': widget.pet.currentHealth <= 0 ? 1 : widget.pet.currentHealth, // Prevent 0 HP death loop
-      'maxHp': widget.pet.maxHealth,
-      'hunger': preservedHunger,
-      'strength': widget.pet.strength,
-      'dexterity': widget.pet.dexterity,
-      'constitution': widget.pet.constitution,
-      'intelligence': widget.pet.intelligence,
-      'wisdom': widget.pet.wisdom,
-      'charisma': widget.pet.charisma,
-    };
-
-    // 3. Save to disk
-    await prefs.setString('pet_save_data', jsonEncode(updatedData));
-
-    if (!mounted) return;
-
-    // 4. Go back to Pet Screen
+    // 4. Navigate to Hatchery (Remove all back history)
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => const PetScreen()),
-          (route) => false,
+      MaterialPageRoute(builder: (context) => const CharacterCreationScreen()),
+          (route) => false, // This removes all previous screens from memory
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black, // Darker vibe for death
       appBar: AppBar(
-        title: const Text('Run Complete'),
-        backgroundColor: Colors.deepPurple,
+        title: const Text('Fallen Hero'),
+        backgroundColor: Colors.red[900],
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(
-              widget.summary.isDungeonCleared ? Icons.emoji_events : Icons.dangerous,
-              size: 100,
-              color: widget.summary.isDungeonCleared ? Colors.amber : Colors.red,
-            ),
+            const Icon(Icons.broken_image, size: 80, color: Colors.grey),
             const SizedBox(height: 20),
             Text(
-              widget.summary.isDungeonCleared ? 'DUNGEON CLEARED!' : 'GAME OVER',
+              "${pet.name} has fallen.",
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 28, color: Colors.redAccent, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Generation ${pet.generation} ends here.",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, color: Colors.white70),
             ),
             const SizedBox(height: 30),
 
-            // --- RUN STATISTICS CARD ---
+            // --- SUMMARY CARD ---
             Card(
+              color: Colors.grey[900],
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Run Statistics',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const Divider(height: 20),
-                    _buildStatRow('Floors Reached', '${widget.summary.floorsReached}'),
-                    _buildStatRow('Choices Made', '${widget.summary.choicesMade}'),
-                    _buildStatRow('Items Found', '${widget.summary.itemsFound}'),
-                    _buildStatRow('Floors Skipped', '${widget.summary.floorsSkipped}'),
-                    _buildStatRow('Floors Lost', '${widget.summary.floorsLost}'),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // --- CURRENT STATS CARD (REPLACED STAT CHANGES) ---
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Final Stats',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const Divider(height: 20),
-                    _buildAttributeRow('Strength', widget.pet.strength),
-                    _buildAttributeRow('Dexterity', widget.pet.dexterity),
-                    _buildAttributeRow('Constitution', widget.pet.constitution),
-                    _buildAttributeRow('Intelligence', widget.pet.intelligence),
-                    _buildAttributeRow('Wisdom', widget.pet.wisdom),
-                    _buildAttributeRow('Charisma', widget.pet.charisma),
+                    _buildRow("Floors Reached", "${summary.floorsReached}"),
+                    _buildRow("Gold Salvaged", "${summary.floorsReached * 5}"), // Show them what they kept
+                    const Divider(color: Colors.white24),
+                    _buildRow("Items Found", "${summary.itemsFound}"),
+                    _buildRow("Choices Made", "${summary.choicesMade}"),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: _returnToPetSim,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                backgroundColor: Colors.deepPurple,
+            const SizedBox(height: 40),
+
+            // --- THE RESTART BUTTON ---
+            SizedBox(
+              height: 60,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[700],
+                  foregroundColor: Colors.white,
+                ),
+                icon: const Icon(Icons.egg),
+                label: const Text("RETURN TO HATCHERY", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                onPressed: () => _processLegacyAndRestart(context),
               ),
-              child: const Text('RETURN TO PET', style: TextStyle(fontSize: 18)),
             ),
           ],
         ),
@@ -154,47 +111,14 @@ class _GameOverScreenState extends State<GameOverScreen> {
     );
   }
 
-  // Helper for generic text rows
-  Widget _buildStatRow(String label, String value, {Color? valueColor}) {
+  Widget _buildRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 18)),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: valueColor ?? Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper specific for Attributes (calculates the +modifier)
-  Widget _buildAttributeRow(String label, int value) {
-    int modifier = ((value - 10) / 2).floor();
-    String modSign = modifier >= 0 ? '+' : '';
-    String displayValue = "$value ($modSign$modifier)";
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 18)),
-          Text(
-            displayValue,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.amberAccent, // Highlights the stats nicely
-            ),
-          ),
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 16)),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         ],
       ),
     );

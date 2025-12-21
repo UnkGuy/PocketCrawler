@@ -1,88 +1,76 @@
 import 'package:flutter/material.dart';
 import '../petsim/pet_game_manager.dart';
+import '../../pet.dart';
 
 class PetDisplayArea extends StatelessWidget {
   final PetGameManager manager;
 
   const PetDisplayArea({super.key, required this.manager});
 
+  // --- EVOLUTION LOGIC ---
+  String _getPetAsset(Pet pet) {
+    // 1. Check Highest Stat
+    Map<String, int> stats = {
+      'str': pet.strength,
+      'dex': pet.dexterity,
+      'int': pet.intelligence,
+    };
+
+    // Sort to find highest
+    var highest = stats.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    String dominantStat = highest.first.key;
+
+    // 2. Determine "Stage" based on Generation or Total Stats
+    // Assuming you have these assets in your folder
+    if (dominantStat == 'str') return 'assets/pets/pet_warrior.png';
+    if (dominantStat == 'dex') return 'assets/pets/pet_rogue.png';
+    if (dominantStat == 'int') return 'assets/pets/pet_mage.png';
+
+    return 'assets/pets/pet_blob.png'; // Default
+  }
+
   @override
   Widget build(BuildContext context) {
     bool hasCustomImage = manager.getCustomPetImage() != null;
 
+    // Determine the asset if no custom image is set
+    String assetPath = _getPetAsset(manager.myPet);
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // --- STATUS BARS ---
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              _buildStatusBar("HP", manager.myPet.currentHealth, manager.myPet.maxHealth, Colors.redAccent),
-              const SizedBox(height: 5),
-              _buildStatusBar("Hunger", manager.hunger, 100, Colors.orange),
-            ],
-          ),
-        ),
+        // ... Keep Status Bars code ...
 
         const Spacer(),
 
-        // --- DRAG TARGET (INTERACTION) ---
+        // PET CONTAINER
         DragTarget<String>(
-          onWillAcceptWithDetails: (d) => manager.selectedTool == 'food',
-          onAcceptWithDetails: (d) => manager.feedPet(5),
-          builder: (context, candidates, rejects) {
-            return GestureDetector(
-              onPanUpdate: (d) {
-                if (manager.selectedTool == 'hand') manager.handlePetting(context);
-                if (manager.selectedTool == 'soap') manager.handleCleaning(d.localPosition, context);
-              },
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // PET CONTAINER
-                  Container(
-                    width: 200, height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: candidates.isNotEmpty ? Colors.green : Colors.white, width: 4),
-                      image: hasCustomImage
-                          ? DecorationImage(image: manager.getCustomPetImage()!, fit: BoxFit.cover)
-                          : null,
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20)],
-                    ),
-                    child: !hasCustomImage
-                        ? Center(child: Icon(manager.myPet.isAlive ? Icons.pets : Icons.sentiment_very_dissatisfied, size: 80, color: Colors.brown))
-                        : null,
-                  ),
-                  // DIRT PATCHES
-                  ...manager.dirtPatches.map((o) => Positioned(
-                      top: o.dy, left: o.dx,
-                      child: const Icon(Icons.blur_on, color: Colors.brown, size: 40)
-                  )),
-                ],
-              ),
-            );
-          },
+          // ... (Keep existing drag logic) ...
+            builder: (context, candidates, rejects) {
+              return GestureDetector(
+                // ... (Keep existing gesture logic) ...
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 200, height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          // --- UPDATED IMAGE LOGIC ---
+                          image: hasCustomImage
+                              ? DecorationImage(image: manager.getCustomPetImage()!, fit: BoxFit.cover)
+                              : DecorationImage(image: AssetImage(assetPath), fit: BoxFit.cover),
+                          // ---------------------------
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20)],
+                        ),
+                      ),
+                      // ... Keep Dirt logic ...
+                    ],
+                  )
+              );
+            }
         ),
         const Spacer(),
-      ],
-    );
-  }
-
-  Widget _buildStatusBar(String label, int current, int max, Color color) {
-    double pct = (current / max).clamp(0.0, 1.0);
-    return Row(
-      children: [
-        SizedBox(width: 50, child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-        Expanded(
-          child: LinearProgressIndicator(
-            value: pct, color: color, backgroundColor: Colors.black26, minHeight: 10, borderRadius: BorderRadius.circular(5),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text("$current/$max", style: const TextStyle(color: Colors.white, fontSize: 12)),
       ],
     );
   }

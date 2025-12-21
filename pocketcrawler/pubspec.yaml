@@ -65,7 +65,8 @@ flutter:
     - assets/backgrounds/
     - assets/items/
     - assets/pets/
-    - assets/stats
+    - assets/stats/
+    - assets/data/
 
   fonts:
     - family: Pixelify

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 
 class TownService {
   // Resources
@@ -79,4 +80,69 @@ class TownService {
     stone += s;
     saveData();
   }
+
+  // --- SHOP LOGIC ---
+  List<ShopItem> dailyShop = [];
+  DateTime? lastShopRefresh;
+
+  // Call this when loading data or returning from dungeon
+  void refreshShop() {
+    final random = Random();
+    dailyShop.clear();
+
+    // 1. Guaranteed Food (Stat Up)
+    dailyShop.add(ShopItem(
+        id: 'protein_shake',
+        name: 'Protein Shake',
+        description: '+1 STR (Permanent)',
+        cost: 150,
+        effectStat: 'strength',
+        effectAmount: 1
+    ));
+
+    // 2. Random Crystal (Evolution Item)
+    List<String> stats = ['dexterity', 'intelligence', 'wisdom', 'constitution'];
+    String randomStat = stats[random.nextInt(stats.length)];
+    dailyShop.add(ShopItem(
+        id: 'crystal_$randomStat',
+        name: '${randomStat.substring(0,3).toUpperCase()} Crystal',
+        description: '+2 $randomStat (Permanent)',
+        cost: 300,
+        effectStat: randomStat,
+        effectAmount: 2
+    ));
+
+    // 3. Expensive Relic
+    dailyShop.add(ShopItem(
+      id: 'golden_apple',
+      name: 'Golden Apple',
+      description: 'Fully Heal + Max Hunger',
+      cost: 500,
+      isConsumable: true,
+    ));
+
+    // Save/Load this logic if you want shop to persist between app closes
+  }
+
+  bool buyItem(ShopItem item) {
+    if (gold >= item.cost) {
+      gold -= item.cost;
+      dailyShop.remove(item); // Remove from shelf
+      saveData();
+      return true;
+    }
+    return false;
+  }
+}
+
+class ShopItem {
+  final String id;
+  final String name;
+  final String description;
+  final int cost;
+  final String? effectStat;
+  final int? effectAmount;
+  final bool isConsumable;
+
+  ShopItem({required this.id, required this.name, required this.description, required this.cost, this.effectStat, this.effectAmount, this.isConsumable = false});
 }

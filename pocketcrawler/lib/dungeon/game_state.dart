@@ -170,10 +170,16 @@ class GameState {
   // ============================================================================
 
   /// Add an item to inventory
-  void addItem(Item item) {
+  bool addItem(Item item) {
+    if (inventory.length >= 5) {
+      eventHistory.add('Floor $currentFloor: Inventory full! Left ${item.name} behind.');
+      return false; // <--- INVENTORY LIMIT REACHED
+    }
+
     inventory.add(item);
     itemsFound++;
     eventHistory.add('Floor $currentFloor: Found ${item.name}');
+    return true;
   }
 
   /// Use an item from inventory by index
