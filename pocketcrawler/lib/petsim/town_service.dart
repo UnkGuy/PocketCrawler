@@ -3,18 +3,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 
 class TownService {
-  // Resources
   int gold = 0;
   int wood = 0;
   int stone = 0;
 
-  // Building Levels
-  int kitchenLevel = 1; // Increases feeding efficiency
-  int incubatorLevel = 1; // Increases starting stats of new pets
-  int gymLevel = 1; // Increases max potential stats
+  int kitchenLevel = 1;
+  int incubatorLevel = 1;
+  int gymLevel = 1;
 
-  // Lineage
   int currentGeneration = 1;
+  List<ShopItem> dailyShop = [];
 
   static final TownService _instance = TownService._internal();
   factory TownService() => _instance;
@@ -32,7 +30,13 @@ class TownService {
       incubatorLevel = map['incubatorLevel'] ?? 1;
       gymLevel = map['gymLevel'] ?? 1;
       currentGeneration = map['currentGeneration'] ?? 1;
+
+      if (map['dailyShop'] != null) {
+        dailyShop = (map['dailyShop'] as List).map((i) => ShopItem.fromJson(i)).toList();
+      }
     }
+
+    if (dailyShop.isEmpty) refreshShop();
   }
 
   Future<void> saveData() async {
@@ -45,20 +49,17 @@ class TownService {
       'incubatorLevel': incubatorLevel,
       'gymLevel': gymLevel,
       'currentGeneration': currentGeneration,
+      'dailyShop': dailyShop.map((i) => i.toJson()).toList(),
     };
     await prefs.setString('town_data', jsonEncode(map));
   }
 
-  // --- UPGRADE LOGIC ---
-
   int getUpgradeCost(String building) {
-    // Simple logic: Cost = Level * 50 Gold + Level * 20 Wood
     int level = 0;
     if (building == 'kitchen') level = kitchenLevel;
     if (building == 'incubator') level = incubatorLevel;
     if (building == 'gym') level = gymLevel;
-
-    return level * 100; // Simplified to just Gold for now
+    return level * 100;
   }
 
   bool tryUpgrade(String building) {
@@ -75,59 +76,34 @@ class TownService {
   }
 
   void addResources(int g, int w, int s) {
-    gold += g;
-    wood += w;
-    stone += s;
+    gold += g; wood += w; stone += s;
     saveData();
   }
 
-  // --- SHOP LOGIC ---
-  List<ShopItem> dailyShop = [];
-  DateTime? lastShopRefresh;
-
-  // Call this when loading data or returning from dungeon
   void refreshShop() {
     final random = Random();
     dailyShop.clear();
 
-    // 1. Guaranteed Food (Stat Up)
-    dailyShop.add(ShopItem(
-        id: 'protein_shake',
-        name: 'Protein Shake',
-        description: '+1 STR (Permanent)',
-        cost: 150,
-        effectStat: 'strength',
-        effectAmount: 1
-    ));
+    dailyShop.add(ShopItem(id: 'protein_shake', name: 'Protein Shake', description: '+1 STR (Perm)', cost: 150, effectStat: 'strength', effectAmount: 1));
 
-    // 2. Random Crystal (Evolution Item)
     List<String> stats = ['dexterity', 'intelligence', 'wisdom', 'constitution'];
     String randomStat = stats[random.nextInt(stats.length)];
     dailyShop.add(ShopItem(
         id: 'crystal_$randomStat',
         name: '${randomStat.substring(0,3).toUpperCase()} Crystal',
-        description: '+2 $randomStat (Permanent)',
+        description: '+2 $randomStat (Perm)',
         cost: 300,
         effectStat: randomStat,
         effectAmount: 2
     ));
 
-    // 3. Expensive Relic
-    dailyShop.add(ShopItem(
-      id: 'golden_apple',
-      name: 'Golden Apple',
-      description: 'Fully Heal + Max Hunger',
-      cost: 500,
-      isConsumable: true,
-    ));
-
-    // Save/Load this logic if you want shop to persist between app closes
+    dailyShop.add(ShopItem(id: 'golden_apple', name: 'Golden Apple', description: 'Heal Full HP', cost: 500, isConsumable: true));
   }
 
   bool buyItem(ShopItem item) {
     if (gold >= item.cost) {
       gold -= item.cost;
-      dailyShop.remove(item); // Remove from shelf
+      dailyShop.remove(item);
       saveData();
       return true;
     }
@@ -145,4 +121,17 @@ class ShopItem {
   final bool isConsumable;
 
   ShopItem({required this.id, required this.name, required this.description, required this.cost, this.effectStat, this.effectAmount, this.isConsumable = false});
+
+  // --- JSON SERIALIZATION (FIXED) ---
+  Map<String, dynamic> toJson() => {
+    'id': id, 'name': name, 'description': description, 'cost': cost,
+    'effectStat': effectStat, 'effectAmount': effectAmount, 'isConsumable': isConsumable
+  };
+
+  factory ShopItem.fromJson(Map<String, dynamic> json) {
+    return ShopItem(
+      id: json['id'], name: json['name'], description: json['description'], cost: json['cost'],
+      effectStat: json['effectStat'], effectAmount: json['effectAmount'], isConsumable: json['isConsumable'] ?? false,
+    );
+  }
 }

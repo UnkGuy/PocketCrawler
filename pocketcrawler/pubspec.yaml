@@ -22,6 +22,7 @@ dependencies:
   image_picker: ^1.1.2
   path_provider: ^2.1.4
   shared_preferences: ^2.3.2
+  audioplayers: ^6.0.0 # Check pub.dev for the latest version
 
 dev_dependencies:
   flutter_test:
@@ -34,12 +35,11 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.13.1 # Use the latest version
-# Base annotation package
-  json_annotation: ^4.8.1
   # The code generator
   build_runner: ^2.4.6
   # The JSON serialization generator
   json_serializable: ^6.7.1
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -67,6 +67,8 @@ flutter:
     - assets/pets/
     - assets/stats/
     - assets/data/
+    - assets/audio/  # Add this line
+    - assets/npcs/
 
   fonts:
     - family: Pixelify

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../petsim/pet_game_manager.dart';
-
-// Import Widgets
-import '../widgets/pet_display_area.dart';
-import '../widgets/pet_stat_grid.dart';
-import '../widgets/pet_action_bar.dart';
-import '../widgets/town_build_sheet.dart';
+import '../widgets/town_page.dart';
+import '../widgets/sanctuary_page.dart';
+import '../widgets/dungeon_gate_page.dart';
 
 class PetScreen extends StatefulWidget {
   const PetScreen({super.key});
@@ -16,6 +13,8 @@ class PetScreen extends StatefulWidget {
 
 class _PetScreenState extends State<PetScreen> {
   final PetGameManager _manager = PetGameManager();
+  // Start at page 1 (Sanctuary) so we can swipe Left (Town) or Right (Gate)
+  final PageController _pageController = PageController(initialPage: 1);
 
   @override
   void initState() {
@@ -26,73 +25,155 @@ class _PetScreenState extends State<PetScreen> {
   @override
   void dispose() {
     _manager.dispose();
+    _pageController.dispose();
     super.dispose();
-  }
-
-  void _showBuildMenu() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => TownBuildSheet(
-        townService: _manager.townService,
-        onUpgrade: () => setState((){}), // Refresh screen if gold changed
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Listen to changes in the Manager
     return ListenableBuilder(
       listenable: _manager,
       builder: (context, child) {
         if (_manager.isLoading) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            backgroundColor: Color(0xFF3E2723),
+            body: Center(child: CircularProgressIndicator(color: Colors.amber)),
+          );
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFF2C3E50),
-
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: Colors.amber[700],
-            onPressed: _showBuildMenu,
-            child: const Icon(Icons.home_filled, size: 30),
-          ),
-
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            centerTitle: true,
-            title: Column(
-              children: [
-                Text(_manager.myPet.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text("Gen ${_manager.myPet.generation}", style: const TextStyle(fontSize: 12, color: Colors.white70)),
-              ],
-            ),
-            actions: [
-              IconButton(icon: const Icon(Icons.refresh), onPressed: () => setState((){})),
-            ],
-          ),
-
-          body: Column(
+          body: Stack(
             children: [
-              // 1. PET DISPLAY
-              Expanded(
-                  flex: 5,
-                  child: PetDisplayArea(manager: _manager)
+              // --- 1. UNIFIED PARALLAX BACKGROUND ---
+              // This background stays behind everything and slides based on scroll
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _pageController,
+                  builder: (context, child) {
+                    // Calculate alignment:
+                    // Page 0 (Town) = -1.0 (Left)
+                    // Page 1 (Sanctuary) = 0.0 (Center)
+                    // Page 2 (Gate) = 1.0 (Right)
+                    double page = _pageController.hasClients ? (_pageController.page ?? 1.0) : 1.0;
+                    double alignmentX = page - 1.0;
+
+                    return Image.asset(
+                      'assets/backgrounds/wide_tabletop_bg.png', // One VERY WIDE image (e.g. 3000px wide)
+                      fit: BoxFit.cover,
+                      alignment: Alignment(alignmentX, 0.0), // Slides left/right
+                      errorBuilder: (c, e, s) => Container(color: const Color(0xFF3E2723)), // Fallback Wood Color
+                    );
+                  },
+                ),
               ),
 
-              // 2. TOOLS
-              PetActionBar(manager: _manager),
+              // --- 2. THE PAGES (Transparent backgrounds) ---
+              SafeArea(
+                child: Column(
+                  children: [
+                    _buildTopBar(), // Stats Panel
 
-              // 3. STATS
-              Expanded(
-                  flex: 4,
-                  child: PetStatGrid(pet: _manager.myPet)
+                    Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        physics: const ClampingScrollPhysics(), // Stops "bouncing" past edges
+                        children: [
+                          TownPage(manager: _manager),
+                          SanctuaryPage(manager: _manager),
+                          DungeonGatePage(manager: _manager),
+                        ],
+                      ),
+                    ),
+
+                    _buildPageIndicator(), // Navigation
+                  ],
+                ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4E342E).withOpacity(0.9), // Dark Wood transparency
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFF8D6E63), width: 2),
+        boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _statBadge(Icons.stars, "Gen ${_manager.myPet.generation}"),
+          Text(
+              _manager.myPet.name,
+              style: const TextStyle(
+                  color: Color(0xFFFFECB3),
+                  fontSize: 20,
+                  fontFamily: 'Pixelify',
+                  shadows: [Shadow(color: Colors.black, blurRadius: 2)]
+              )
+          ),
+          _statBadge(Icons.monetization_on, "${_manager.townService.gold} G"),
+        ],
+      ),
+    );
+  }
+
+  Widget _statBadge(IconData icon, String text) {
+    return Row(children: [
+      Icon(icon, color: Colors.amber, size: 16),
+      const SizedBox(width: 4),
+      Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+    ]);
+  }
+
+  Widget _buildPageIndicator() {
+    return AnimatedBuilder(
+      animation: _pageController,
+      builder: (context, child) {
+        int page = _pageController.hasClients ? (_pageController.page?.round() ?? 1) : 1;
+        return Container(
+          height: 60,
+          decoration: BoxDecoration(
+              color: const Color(0xFF3E2723),
+              border: const Border(top: BorderSide(color: Color(0xFF8D6E63), width: 2)),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0,-5))]
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _navIcon(Icons.store_mall_directory, "Town", 0, page),
+              _navIcon(Icons.cottage, "Sanctuary", 1, page),
+              _navIcon(Icons.door_back_door, "Gate", 2, page),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _navIcon(IconData icon, String label, int index, int currentPage) {
+    bool isSelected = index == currentPage;
+    return GestureDetector(
+      onTap: () => _pageController.animateToPage(index, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut),
+      child: AnimatedScale(
+        scale: isSelected ? 1.2 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: isSelected ? Colors.amber : const Color(0xFFD7CCC8)),
+            if(isSelected) // Only show text when selected to save space
+              Text(label, style: const TextStyle(color: Colors.amber, fontSize: 10, fontFamily: 'Pixelify')),
+          ],
+        ),
+      ),
     );
   }
 }
