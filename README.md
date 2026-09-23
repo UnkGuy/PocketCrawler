@@ -1,158 +1,202 @@
-🏰 Pocket Crawler
+# Pocket Crawler
 
-Pocket Crawler is a hybrid mobile game that combines Tamagotchi-style Pet Simulation with a Text-Based D&D Dungeon Crawler.
+Pocket Crawler is a hybrid mobile game that combines **Tamagotchi-style Pet Simulation** with a **Text-Based D&D Dungeon Crawler**.
 
-This repository focuses on the Dungeon Crawler "Arcade Mode" module of the application.
+This repository focuses on the **Dungeon Crawler "Arcade Mode"** module of the application.
 
-📖 About the Project
+---
 
-While one part of the app focuses on caring for and customizing a pet, the core gameplay loop involves taking that pet into a dungeon, navigating random text-based scenarios, and surviving as long as possible. The game relies heavily on Dungeons & Dragons 5e mechanics, utilizing Ability Scores and D20 rolls to resolve non-combat encounters.
+# About the Project
 
-🎮 Core Concepts
+While one part of the app focuses on caring for and customizing a pet, the core gameplay loop involves taking that pet into a dungeon, navigating random text-based scenarios, and surviving as long as possible.
 
-Genre: Text Adventure / Simulation / Roguelite (Arcade)
+The game relies heavily on **Dungeons & Dragons 5e** mechanics, utilizing **Ability Scores** and **D20 rolls** to resolve non-combat encounters.
 
-Theme: D&D Fantasy
+---
 
-Goal: Survive 100 floors (or Infinite Mode)
+# Core Concepts
 
-Combat: None. All conflict is resolved via narrative choices and stat checks.
+- **Genre:** Text Adventure / Simulation / Roguelite (Arcade)
+- **Theme:** D&D Fantasy
+- **Goal:** Survive 100 floors (or play Infinite Mode)
+- **Combat:** None. All conflict is resolved via narrative choices and stat checks.
+- **Progression:** Arcade-style. Stats reset after every run (Roguelite). High scores are based on floors reached.
 
-Progression: Arcade-style. Stats reset after every run (Roguelite). High scores are based on floors reached.
+---
 
-🐾 The Pet System
+# The Pet System
 
-The Pet is the central character passed between the Simulation mode and the Dungeon mode. Instead of a complex skill tree, we use the 6 core D&D attributes:
+The Pet is the central character passed between the Simulation mode and the Dungeon mode.
 
-Stat
+Instead of a complex skill tree, the game uses the six core D&D attributes:
 
-Description
+| Stat | Description |
+|--------|-------------|
+| STR | Strength |
+| DEX | Dexterity |
+| INT | Intelligence |
+| WIS | Wisdom |
+| CHA | Charisma |
+| CON | Constitution (Determines Max Health, not used for checks) |
 
-STR
+## Start of a Run
 
-Strength
+When entering the dungeon, the player **rolls for stats** (via random rolls or point distribution) to determine the baseline attributes for that specific run.
 
-DEX
+---
 
-Dexterity
+# Dungeon Mechanics
 
-INT
+## Gameplay Loop
 
-Intelligence
+1. **Enter Floor**  
+   A scenario is generated based on rarity weights.
 
-WIS
+2. **Scenario Appears**  
+   Text describes the situation.  
+   Example: *"A goblin merchant blocks the path."*
 
-Wisdom
+3. **Make a Choice**  
+   Select one of three options, each tied to a specific stat.
 
-CHA
+4. **Roll the Dice**  
+   `(D20 + Stat Modifier)` vs. **Difficulty Class (DC)**
 
-Charisma
+5. **Resolve Outcome**  
+   Success or failure triggers consequences.
 
-CON
+6. **Continue**  
+   If Health > 0, proceed to the next floor.
 
-Constitution (Determines Max Health, not used for checks)
+---
 
-Start of Run
+## Rarity System
 
-When entering the dungeon, the player "Rolls for Stats" (distributing points or random rolls) to determine the baseline for that specific run.
+| Rarity | Chance | Description |
+|---------|---------|-------------|
+| Common | 70% | Standard interactions |
+| Uncommon | 20% | Harder checks, better rewards |
+| Rare | 10% | Unique events with major risks/rewards |
 
-🏰 Dungeon Mechanics
+---
 
-The Gameplay Loop
+## Consequences & Rewards
 
-Enter Floor: A Scenario is generated based on rarity weights.
+### Stat Modifiers
+Trade-offs such as:
 
-Scenario: Text describes the situation (e.g., "A goblin merchant blocks the path").
+- `+2 STR / -1 INT`
+- `+1 CHA / -1 WIS`
 
-Choice: Player selects 1 of 3 options, each tied to a specific Stat.
+### Health
 
-The Roll: (D20 + Stat Modifier) vs Difficulty Class (DC)
+- Damage from failed encounters
+- Rare healing opportunities
 
-Outcome: Success or Failure triggers consequences.
+### Items
 
-Next Floor: If Health > 0, proceed.
+Temporary consumables, such as:
 
-Rarity System
+- Potion of Bull's Strength
+- Healing Potion
+- Lucky Charm
 
-Common (70%): Standard interactions.
+### Floor Movement
 
-Uncommon (20%): Harder checks, better rewards.
+- Skip forward 5-10 floors (Reward)
+- Fall back several floors (Punishment)
 
-Rare (10%): Unique events, massive risks/rewards.
+### Conditions
 
-Consequences & Rewards
+Temporary roll modifiers such as:
 
-Stat Mods: Trade-offs (e.g., +2 STR / -1 INT).
+- **Blessed** (Advantage)
+- **Cursed** (Disadvantage)
 
-Health: Damage or rare healing.
+---
 
-Items: Temporary consumables (e.g., Potion of Bull's Strength).
+# Project Structure
 
-Floor Skips: Jump forward 5-10 floors (Reward) or fall back (Punishment).
-
-Conditions: Temporary Advantage (Blessed) or Disadvantage (Cursed) on rolls.
-
-📂 Project Structure
-
+```text
 lib/
 ├── models/
 │   └── pet_model.dart       # Core Pet logic (Stats, Health, Status Effects)
 ├── dungeon/
-│   ├── game_state.dart      # Manages the run (Floors, Inventory, History)
-│   ├── scenario.dart        # Data classes for Scenario, Choice, Outcome
-│   ├── scenario_data.dart   # Hardcoded library of game scenarios
-│   ├── item.dart            # Item data classes and logic
-│   └── dice_roller.dart     # RNG utility (D20, Advantage/Disadvantage)
+│   ├── game_state.dart      # Manages runs (Floors, Inventory, History)
+│   ├── scenario.dart        # Scenario, Choice, and Outcome models
+│   ├── scenario_data.dart   # Scenario library
+│   ├── item.dart            # Item definitions and logic
+│   └── dice_roller.dart     # D20 RNG utility (Advantage/Disadvantage)
+```
 
+---
 
-🗺️ Roadmap & Progress
+# Roadmap & Progress
 
-[x] Phase 1: The Engine
+## ✅ Phase 1: The Engine
 
-[x] Create Pet class with stats
+- [x] Create Pet class with stats
+- [x] Implement D20 RNG logic (`DiceRoller`)
+- [ ] Basic UI for stat display
 
-[x] Implement D20 RNG Logic (DiceRoller)
+## ✅ Phase 2: The Content
 
-[ ] Basic UI for stat display
+- [x] Create Scenario and Choice classes
+- [x] Implement initial scenario library (`ScenarioLibrary`)
+- [x] Implement rarity weighting logic
 
-[x] Phase 2: The Content
+## ✅ Phase 3: The Loop
 
-[x] Create Scenario and Choice classes
+- [x] Floor counter implementation (`GameState`)
+- [x] Health tracking and Game Over state
+- [x] Stat modification logic (success/failure outcomes)
 
-[x] Implement initial library of Scenarios (ScenarioLibrary)
+## ✅ Phase 4: Advanced Mechanics
 
-[x] Implement Rarity weighting logic
+- [x] Inventory and item usage
+- [x] Advantage/Disadvantage system
+- [x] Floor skipping and backtracking
 
-[x] Phase 3: The Loop
+---
 
-[x] Floor counter implementation (GameState)
+# Technical Architecture
 
-[x] Health tracking & Game Over state
+Built using **Flutter** and **Dart**.
 
-[x] Stat Modification logic (Success/Fail outcomes)
+## Key Classes
 
-[x] Phase 4: Advanced Mechanics
+### `Pet`
+Stores:
 
-[x] Inventory & Item usage
+- Stats
+- Health
+- Inventory
+- Active conditions
 
-[x] Advantage/Disadvantage system
+### `Scenario`
+Contains:
 
-[x] Floor Skipping/Backtracking
+- Description
+- Rarity
+- Available choices
 
-🛠️ Technical Architecture
+### `Choice`
+Connects UI button text to specific stat checks and DC values.
 
-Built using Flutter and Dart.
+### `Outcome`
+Applies gameplay results such as:
 
-Key Classes:
+- Stat changes
+- Damage
+- Healing
+- Item rewards
 
-Pet: Stores stats, health, inventory, and active conditions.
+### `GameState`
+Manages the current run:
 
-Scenario: Holds description, rarity, and list of Choices.
+- Floor count
+- Active pet
+- Inventory
+- Run history
 
-Choice: Connects UI button text to specific Stats and DCs.
-
-Outcome: Handles the logic for result application (stat changes, damage, etc.).
-
-GameState: Manages the current run (Floor count, active pet, history).
-
-This project is currently in active development.
+---
